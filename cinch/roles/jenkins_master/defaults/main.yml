@@ -42,6 +42,9 @@ session_timeout: 480
 jenkins_args: >-
   {{ https_enabled | ternary('--httpsKeyStore=' + jenkins_home +
   '/.ssl/keystore --httpsKeyStorePassword=' + keystore_pass, '') }}
+# The name of the user to grant access to, so the Swarm clients can connect to
+# the host
+swarm_user: swarm-automation-user
 
 # ############################################################################
 # A list of variables that don't really need to be overridden, but which can be

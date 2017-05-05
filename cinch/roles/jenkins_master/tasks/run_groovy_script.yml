@@ -1,0 +1,22 @@
+- name: copy in configure script
+  template:
+    src: "{{ script_name }}"
+    dest: "{{ ansible_user_dir }}"
+  register: groovy_script
+
+- name: run Jenkins global config
+  jenkins_script:
+    url: "{{ _jenkins_url }}"
+    script: "{{ item }}"
+    validate_certs: false
+    args: "{{ script_args | default(omit) }}"
+  when: groovy_script.changed
+  notify: restart Jenkins
+  register: global_config
+  retries: 10
+  until: "'HTTP error 503' not in (global_config.msg | default(''))"
+  delay: 10
+  with_file:
+    - "{{ role_path }}/templates/{{ script_name }}"
+  tags:
+    - skip_ansible_lint

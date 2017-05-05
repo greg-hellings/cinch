@@ -17,3 +17,10 @@
   jenkins_cli_user:
     jenkins_home: "{{ jenkins_home }}"
     key_file: "{{ ansible_user_dir }}/.ssh/id_rsa.pub"
+
+- name: configure swarm client user
+  include: run_groovy_script.yml
+  vars:
+    script_name: swarm.groovy
+    script_args:
+      swarm_user: "{{ swarm_user }}"
