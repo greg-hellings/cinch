@@ -1,10 +1,13 @@
-def hudson = hudson.model.Hudson.instance
+import jenkins.model.Jenkins
+import jenkins.model.DownloadSettings
 
-hudson.setNumExecutors(10)
+def jenkins = Jenkins.instance;
 
-def ds = hudson.getExtensionList(jenkins.model.DownloadSettings.class)[0]
+jenkins.setNumExecutors({{ jenkins_executors }});
+
+def ds = jenkins.getExtensionList(DownloadSettings.class)[0];
 ds.setUseBrowser(false)
 ds.save()
 
-hudson.setSlaveAgentPort(50000)
-hudson.save()
+jenkins.setSlaveAgentPort({{ jenkins_slave_agent_port }})
+jenkins.save()

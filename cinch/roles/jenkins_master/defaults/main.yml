@@ -51,6 +51,80 @@ jenkins_args: >-
 # The name of the user to grant access to, so the Swarm clients can connect to
 # the host
 swarm_user: swarm-automation-user
+# The number of simultaneous executor threads to permit on the master node
+jenkins_executors: 10
+# ##############################################################################
+# SECURITY SETTINGS
+# If you are setting these, probably the best choice is to configure a Jenkins
+# master through the UI the way that you want it, then check the values set in
+# the Jenkins config.xml file (can be found at {{ jenkins_home }}/config.xml).
+# The values given here, although they should work, are just a small set of the
+# many options that can be configured
+# ##############################################################################
+# Set to true in order to enforce users to login and authenticate on the system, set to false
+# otherwise. If you do not set this to true, anyone will be able to administrate your system
+# through the web interface
+jenkins_security_enabled: false
+# Jenkins user roles to configure, globally, for the given master.
+jenkins_security_roles:
+  - name: admin
+    permissions:
+      - hudson.model.View.Delete
+      - hudson.model.Computer.Connect
+      - hudson.model.Run.Delete
+      - hudson.model.Hudson.UploadPlugins
+      - com.cloudbees.plugins.credentials.CredentialsProvider.ManageDomains
+      - hudson.model.Computer.Create
+      - hudson.model.View.Configure
+      - com.synopsys.arc.jenkins.plugins.ownership.OwnershipPlugin.Jobs
+      - com.sonyericsson.hudson.plugins.gerrit.trigger.PluginImpl.Retrigger
+      - hudson.model.Hudson.ConfigureUpdateCenter
+      - hudson.model.Computer.Build
+      - hudson.model.Item.Configure
+      - hudson.model.Hudson.Administer
+      - hudson.model.Item.Cancel
+      - hudson.model.Item.Read
+      - com.cloudbees.plugins.credentials.CredentialsProvider.View
+      - hudson.model.Computer.Delete
+      - hudson.model.Item.Build
+      - hudson.model.Item.ExtendedRead
+      - hudson.scm.SCM.Tag
+      - hudson.model.Item.Move
+      - hudson.model.Item.Discover
+      - hudson.model.Hudson.Read
+      - com.cloudbees.plugins.credentials.CredentialsProvider.Update
+      - hudson.model.Item.Create
+      - hudson.model.Item.Workspace
+      - org.jenkinsci.plugins.envinject.EnvInjectPlugin.ViewVars
+      - com.cloudbees.plugins.credentials.CredentialsProvider.Delete
+      - hudson.model.Run.Replay
+      - hudson.model.Item.WipeOut
+      - hudson.model.View.Read
+      - hudson.model.Hudson.RunScripts
+      - hudson.model.View.Create
+      - hudson.model.Computer.ExtendedRead
+      - hudson.model.Item.Delete
+      - com.sonyericsson.hudson.plugins.gerrit.trigger.PluginImpl.ManualTrigger
+      - hudson.model.Computer.Configure
+      - com.cloudbees.plugins.credentials.CredentialsProvider.Create
+      - com.synopsys.arc.jenkins.plugins.ownership.OwnershipPlugin.Nodes
+      - hudson.model.Computer.Disconnect
+      - hudson.model.Run.Artifacts
+      - com.cloudbees.plugins.credentials.CredentialsProvider.UseItem
+      - com.cloudbees.plugins.credentials.CredentialsProvider.UseOwn
+      - hudson.model.Run.Update
+# The security realm where authorization values are drawn from. This default usees Jenkins'
+# internal group of users to authenticate against. Currently, only LDAP is supported.
+jenkins_security_realm: ldap
+# Set the following options in order to configure LDAP settings
+jenkins_ldap:
+  server: ldaps://someserver:1234
+  root_dn: mysearch
+  user_search_base: ''
+  user_search: ''
+  group_search_base: ''
+  manager_dn: manager
+  manager_password: manager_password
 
 # ############################################################################
 # A list of variables that don't really need to be overridden, but which can be

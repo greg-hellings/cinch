@@ -1,0 +1,74 @@
+- name: configure CLI users appropriately
+  jenkins_cli_user:
+    jenkins_home: "{{ jenkins_home }}"
+    key_file: "{{ jenkins_home }}/.ssh/id_rsa.pub"
+  become: true
+  become_user: "{{ jenkins_user }}"
+
+- name: ensure Jenkins has started
+  include: ensure_up.yml
+
+- name: load LDAP configuration script
+  set_fact:
+    ldap_script: "{{ lookup('file', role_path + '/templates/ldap.groovy') }}"
+
+# If this task, or any of the following jenkins_script tasks complain about the
+# construction of their changed_when clause, that likely means the script failed
+# to run. You will need to set ignore_errors: true, comment out the changed_when
+# line, and then output the value of the script_output variable after the task
+# completes in order to debug. Sadly, the jenkins_script module does not return
+# the .output member of the registered value if the script errors
+#
+# The following example tasks can be used to output the value of the return code
+# and can give you valuable debugging output when trying to troubleshoot the
+# Groovy scripts.
+#- debug: var=script_output
+#- fail: msg={{ script_output.msg.split('\n') }}
+#  when: "'msg' in script_output"
+
+- name: configure LDAP
+  jenkins_script:
+    url: "{{ _jenkins_url }}"
+    script: "{{ ldap_script }}"
+    validate_certs: false
+    args:
+      jenkins_ldap: "{{ jenkins_ldap }}"
+  register: script_output
+  changed_when: script_output.output.find('CHANGED') != -1
+  when: jenkins_security_enabled and jenkins_security_realm == 'ldap'
+
+- name: load authentication roles script
+  set_fact:
+    role_auth_script: "{{ lookup('file', role_path + '/templates/role_based_auth.groovy') }}"
+
+- name: configure authentication roles
+  jenkins_script:
+    url: "{{ _jenkins_url }}"
+    script: "{{ role_auth_script }}"
+    validate_certs: false
+    args:
+      jenkins_security_roles: "{{ jenkins_security_roles }}"
+  register: script_output
+  changed_when: script_output.output.find('CHANGED') != -1
+  when: jenkins_security_enabled
+
+- name: load swarm client user script
+  set_fact:
+    swarm_script: "{{ lookup('file', role_path + '/templates/swarm.groovy') }}"
+
+- name: configure swarm client user
+  jenkins_script:
+    url: "{{ _jenkins_url }}"
+    script: "{{ swarm_script }}"
+    validate_certs: false
+    args:
+      swarm_user: "{{ swarm_user }}"
+  register: script_output
+  #changed_when: script_output.output.find('CHANGED') != -1
+  ignore_errors: true
+  when: jenkins_security_enabled
+
+- debug: msg={{ swarm_script.split('\n') }}
+  when: "'msg' in script_output"
+- fail: msg={{ script_output.msg.split('\n') }}
+  when: "'msg' in script_output"

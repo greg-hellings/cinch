@@ -1,10 +1,20 @@
 - name: wait for Jenkins
   include: ensure_up.yml
 
-- name: run Jenkins global config
-  include: run_groovy_script.yml script_name=groovy_set_jenkins_cfg.java
+- set_fact:
+    script: "{{ lookup('file', role_path + '/templates/groovy_set_jenkins_cfg.java') }}"
 
-- name: run update center configure script
+- name: run Jenkins global config
+  jenkins_script:
+    url: "{{ _jenkins_url }}"
+    script: "{{ script }}"
+    validate_certs: false
+    args:
+      jenkins_executors: "{{ jenkins_executors }}"
+      jenkins_slave_agent_port: "{{ jenkins_slave_agent_port }}"
+  register: script_output
+
+- name: configure update centers
   jenkins_update_center:
     update_center_id: "{{ item.id }}"
     update_center_url: "{{ item.url }}"

@@ -1,16 +1,3 @@
-- name: check Jenkins global security
-  become: false
-  jenkins_security_enabled:
-    jenkins_home: "{{ jenkins_home }}"
-
-- name: check for https pre-configure
-  include: https_check.yml
-
-- name: remember that HTTPS is already enabled, even if not set to enable
-  set_fact:
-    https_enabled: true
-  when: https_cfg_exists
-
 - name: install necessary packages
   include: install.yml
 
@@ -23,7 +10,7 @@
   when: https_enabled
 
 - name: configure Jenkins
-  include: configure.yml
+  include: pre-configure.yml
 
 - name: startup Jenkins
   systemd:
@@ -31,16 +18,14 @@
     state: started
     enabled: true
 
-- name: configure CLI users
-  become: false
-  include: cli-users.yml
-  when: jenkins_security_enabled
-
 - name: pin plugins to avoid upgrades
   include: pin_plugin.yml
 
 - name: plugins and Jenkins config
   include: plugins.yml
+
+- name: configure CLI users
+  include: post-configure.yml
 
 - name: make sure handlers are flushed
   meta: flush_handlers
