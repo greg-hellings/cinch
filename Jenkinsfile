@@ -24,7 +24,7 @@ try {
 			sh "~/venv/linchpin/bin/pip install -U pip"
 			sh "~/venv/linchpin/bin/pip install -U linchpin==1.0.1 cinch==0.6.0"
 			dir('topology-dir/test/') {
-				sh "WORKSPACE=$(pwd) ~/venv/linchpin/bin/linchpin --creds-path credentials -v up builder"
+				sh "WORKSPACE=\$(pwd) ~/venv/linchpin/bin/linchpin --creds-path credentials -v up builder"
 				sh "~/venv/linchpin/bin/cinch inventories/builder.inventory"
 				sh "~/venv/linchpin/bin/ansible -i inventories/builder.inventory -m package -a 'name=python3-tox,python2-virtualenv,python3-virtualenv,ShellCheck state=present'"
 			}
@@ -40,7 +40,7 @@ try {
 } finally {
 	stage("Tear Down") {
 		dir("cinch-docs-internal/text/") {
-			sh "WORKSPACE=$(pwd) ~/venv/linchpin/bin/linchpin down builder"
+			sh "WORKSPACE=\$(pwd) ~/venv/linchpin/bin/linchpin down builder"
 		}
 	}
 }
