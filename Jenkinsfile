@@ -12,7 +12,7 @@
 *
 * Teardown resources
 */
-properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', defaultValue: 'https://example.com/topologies.git', description: 'The URL to a repository containing a directory named "test" which contains the topology files for Linchpin to spin up systems defined at the top of the Jenkinsfile.', name: 'TOPOLOGY_DIR_URL']])
+properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', defaultValue: 'https://example.com/topologies.git', description: 'The URL to a repository containing a directory named "test" which contains the topology files for Linchpin to spin up systems defined at the top of the Jenkinsfile.', name: 'TOPOLOGY_DIR_URL']]]])
 
 try {
 	stage("Provision") {
