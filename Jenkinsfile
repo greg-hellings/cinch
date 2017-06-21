@@ -39,8 +39,10 @@ try {
 	}
 } finally {
 	stage("Tear Down") {
-		dir("cinch-docs-internal/text/") {
-			sh "WORKSPACE=\$(pwd) ~/venv/linchpin/bin/linchpin down builder"
+		node {
+			dir("cinch-docs-internal/text/") {
+				sh "WORKSPACE=\$(pwd) ~/venv/linchpin/bin/linchpin down builder"
+			}
 		}
 	}
 }
