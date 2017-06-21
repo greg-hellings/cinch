@@ -32,7 +32,7 @@ try {
 	}
 
 	stage("Tier 1") {
-		node('cinch-test-builder') {
+		node("cinch-test-builder") {
 			checkout scm
 			sh "tox -e lint"
 		}
@@ -40,7 +40,7 @@ try {
 } finally {
 	stage("Tear Down") {
 		node {
-			dir("cinch-docs-internal/test/") {
+			dir("topology-dir/test/") {
 				sh "WORKSPACE=\$(pwd) ~/venv/linchpin/bin/linchpin down builder"
 			}
 		}
