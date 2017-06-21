@@ -18,7 +18,7 @@ try {
 			properties([[$class: 'ParametersDefinitionProperty', parameterDefinitions: [[$class: 'StringParameterDefinition', defaultValue: 'https://example.com/topologies.git', description: 'The URL to a repository containing a directory named "test" which contains the topology files for Linchpin to spin up systems defined at the top of the Jenkinsfile.', name: 'TOPOLOGY_DIR_URL']]]])
 
 			dir("topology-dir") {
-				git url:"${TOPOLOGY_GIT_URL}", branch: "master"
+				git url:"${TOPOLOGY_DIR_URL}", branch: "master"
 			}
 			sh "virtualenv --system-site-packages ~/venv/linchpin"
 			sh "~/venv/linchpin/bin/pip install -U pip"
@@ -40,7 +40,7 @@ try {
 } finally {
 	stage("Tear Down") {
 		node {
-			dir("cinch-docs-internal/text/") {
+			dir("cinch-docs-internal/test/") {
 				sh "WORKSPACE=\$(pwd) ~/venv/linchpin/bin/linchpin down builder"
 			}
 		}
