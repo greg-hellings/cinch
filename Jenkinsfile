@@ -25,6 +25,8 @@ try {
 			sh "linchpin/bin/pip install -U pip"
 			sh "linchpin/bin/pip install -U linchpin==1.0.1 cinch==0.6.0"
 			dir('topology-dir/test/') {
+				// Clean the cruft from previous runs, first
+				sh "rm -rf inventories/*.inventory resources/*.output"
 				sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
 				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				sh "PATH=${WORKSPACE}/linchpin/bin/:\$PATH cinch inventories/builder.inventory"
