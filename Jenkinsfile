@@ -1,3 +1,4 @@
+#!groovy
 /**
 * Spin up resources
 * 1. Fedora machine for tox and shell check and docker images
@@ -20,13 +21,13 @@ try {
 			dir("topology-dir") {
 				git url:"${TOPOLOGY_DIR_URL}", branch: "master"
 			}
-			sh "virtualenv --system-site-packages ~/venv/linchpin"
-			sh "~/venv/linchpin/bin/pip install -U pip"
-			sh "~/venv/linchpin/bin/pip install -U linchpin==1.0.1 cinch==0.6.0"
+			sh "virtualenv --system-site-packages linchpin"
+			sh "linchpin/bin/pip install -U pip"
+			sh "linchpin/bin/pip install -U linchpin==1.0.1 cinch==0.6.0"
 			dir('topology-dir/test/') {
-				sh "WORKSPACE=\$(pwd) ~/venv/linchpin/bin/linchpin --creds-path credentials -v up builder"
-				sh "PATH=~/venv/linchpin/bin/:\$PATH ~/venv/linchpin/bin/cinch inventories/builder.inventory"
-				sh "~/venv/linchpin/bin/ansible -i inventories/builder.inventory -m package -a 'name=python3-tox,python2-virtualenv,python3-virtualenv,ShellCheck state=present' all"
+				sh "WORKSPACE=\$(pwd) linchpin/bin/linchpin --creds-path credentials -v up builder"
+				sh "PATH=linchpin/bin/:\$PATH linchpin/bin/cinch inventories/builder.inventory"
+				sh "linchpin/bin/ansible -i inventories/builder.inventory -m package -a 'name=python3-tox,python2-virtualenv,python3-virtualenv,ShellCheck state=present' all"
 			}
 		}
 	}
@@ -41,7 +42,7 @@ try {
 	stage("Tear Down") {
 		node {
 			dir("topology-dir/test/") {
-				sh "WORKSPACE=\$(pwd) ~/venv/linchpin/bin/linchpin --creds-path credentials -v down builder"
+				sh "WORKSPACE=\$(pwd) linchpin/bin/linchpin --creds-path credentials -v down builder"
 			}
 		}
 	}
