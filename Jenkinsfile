@@ -25,9 +25,9 @@ try {
 			sh "linchpin/bin/pip install -U pip"
 			sh "linchpin/bin/pip install -U linchpin==1.0.1 cinch==0.6.0"
 			dir('topology-dir/test/') {
-				sh "WORKSPACE=\$(pwd) linchpin/bin/linchpin --creds-path credentials -v up builder"
-				sh "PATH=linchpin/bin/:\$PATH linchpin/bin/cinch inventories/builder.inventory"
-				sh "linchpin/bin/ansible -i inventories/builder.inventory -m package -a 'name=python3-tox,python2-virtualenv,python3-virtualenv,ShellCheck state=present' all"
+				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
+				sh "PATH=${WORKSPACE}/linchpin/bin/:\$PATH cinch inventories/builder.inventory"
+				sh "../../linchpin/bin/ansible -i inventories/builder.inventory -m package -a 'name=python3-tox,python2-virtualenv,python3-virtualenv,ShellCheck state=present' all"
 			}
 		}
 	}
@@ -42,7 +42,7 @@ try {
 	stage("Tear Down") {
 		node {
 			dir("topology-dir/test/") {
-				sh "WORKSPACE=\$(pwd) linchpin/bin/linchpin --creds-path credentials -v down builder"
+				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v down builder"
 			}
 		}
 	}
