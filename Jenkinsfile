@@ -28,7 +28,7 @@ try {
 				sh "ln -s /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages"
 			}
 			sh "linchpin/bin/pip install -U pip==9.0.1"
-			sh "linchpin/bin/pip install https://github.com/CentOS-PaaS-SiG/linchpin/archive/master.tar.gz https://github.com/RedHatQE/cinch/archive/master.tar.gz"
+			sh "linchpin/bin/pip install https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz https://github.com/RedHatQE/cinch/archive/master.tar.gz"
 			dir('topology-dir/test/') {
 				// Clean the cruft from previous runs, first
 				sh "rm -rf inventories/*.inventory resources/*.output"
