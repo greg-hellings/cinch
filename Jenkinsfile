@@ -21,14 +21,13 @@ try {
 			}
 			sh "virtualenv --system-site-packages linchpin"
 			sh "linchpin/bin/pip install -U pip"
-			sh "linchpin/bin/pip install -U linchpin==1.0.1 cinch==0.6.0"
+			sh "linchpin/bin/pip install -U https://github.com/CentOS-PaaS-SiG/linchpin/archive/master.tar.gz https://github.com/RedHatQE/cinch/archive/master.tar.gz"
 			dir('topology-dir/test/') {
 				// Clean the cruft from previous runs, first
 				sh "rm -rf inventories/*.inventory resources/*.output"
 				sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
 				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				sh "PATH=${WORKSPACE}/linchpin/bin/:\$PATH cinch inventories/builder.inventory"
-				sh "../../linchpin/bin/ansible -i inventories/builder.inventory -m package -a 'name=python3-tox,python2-virtualenv,python3-virtualenv,ShellCheck state=present' all"
 			}
 		}
 	}
