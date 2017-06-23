@@ -23,7 +23,8 @@ try {
 			}
 			// Avoid re-creating this every time we run
 			if ( !fileExists( "linchpin" ) ) {
-				sh "virtualenv linchpin"
+				sh "virtualenv --no-setuptools linchpin"
+				sh "curl https://bootstrap.pypa.io/get-pip.py | linchpin/bin/python"
 				sh "ln -s /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages"
 			}
 			sh "linchpin/bin/pip install -U pip==9.0.1"
