@@ -21,7 +21,7 @@ try {
 			}
 			sh "virtualenv --system-site-packages linchpin"
 			sh "linchpin/bin/pip install -U pip"
-			sh "linchpin/bin/pip install -U https://github.com/CentOS-PaaS-SiG/linchpin/archive/master.tar.gz https://github.com/RedHatQE/cinch/archive/master.tar.gz"
+			sh "linchpin/bin/pip install https://github.com/CentOS-PaaS-SiG/linchpin/archive/master.tar.gz https://github.com/RedHatQE/cinch/archive/master.tar.gz"
 			dir('topology-dir/test/') {
 				// Clean the cruft from previous runs, first
 				sh "rm -rf inventories/*.inventory resources/*.output"
