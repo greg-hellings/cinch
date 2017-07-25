@@ -28,14 +28,14 @@ try {
 				sh "ln -s /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages"
 			}
 			sh "linchpin/bin/pip install -U pip==9.0.1"
-			sh "linchpin/bin/pip install https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz https://github.com/RedHatQE/cinch/archive/master.tar.gz"
+			sh "linchpin/bin/pip install https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz cinch==0.7.0"
 			dir('topology-dir/test/') {
 				// Clean the cruft from previous runs, first
 				sh "rm -rf inventories/*.inventory resources/*.output"
 				sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
-				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
+				sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				stash name: "output", includes: "inventories/*.inventory,resources/*"
-				sh "PATH=${WORKSPACE}/linchpin/bin/:\$PATH cinch inventories/builder.inventory"
+				sh "PATH=\"${WORKSPACE}/linchpin/bin/:\$PATH\" cinch inventories/builder.inventory"
 			}
 		}
 	}
