@@ -51,7 +51,8 @@ try {
 	stage("Tear Down") {
 		node {
 			dir("topology-dir") {
-				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
+				checkout branches: [name: topologyBranch], userRemoteConfigs: [url: "${TOPOLOGY_DIR_URL}"]
+				//git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
 			}
 			dir("topology-dir/test/") {
 				unstash "output"
