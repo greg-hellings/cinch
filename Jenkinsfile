@@ -20,7 +20,7 @@ try {
 		node {
 			dir("topology-dir") {
 				checkout branches: [name: topologyBranch], userRemoteConfigs: [url: "${TOPOLOGY_DIR_URL}"]
-				#git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
+				//git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
 			}
 			// Avoid re-creating this every time we run
 			if ( !fileExists( "linchpin" ) ) {
