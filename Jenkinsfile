@@ -19,7 +19,8 @@ try {
 	stage("Provision") {
 		node {
 			dir("topology-dir") {
-				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
+				checkout branches: [name: topologyBranch], userRemoteConfigs: [url: "${TOPOLOGY_DIR_URL}"]
+				#git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
 			}
 			// Avoid re-creating this every time we run
 			if ( !fileExists( "linchpin" ) ) {
