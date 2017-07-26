@@ -4,8 +4,7 @@
     name: ntp
     state: present
 
-- name: override ntp servers when ntp_servers is defined
-  block:
+- block:
     - name: remove existing ntp server values
       lineinfile:
         backup: yes
