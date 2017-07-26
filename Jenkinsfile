@@ -33,7 +33,7 @@ try {
 				// Clean the cruft from previous runs, first
 				sh "rm -rf inventories/*.inventory resources/*.output"
 				sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
-				sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/cinchpin up"
+				sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				stash name: "output", includes: "inventories/*.inventory,resources/*"
 				sh "PATH=\"${WORKSPACE}/linchpin/bin/:\$PATH\" cinch inventories/builder.inventory"
 			}
@@ -54,7 +54,8 @@ try {
 			}
 			dir("topology-dir/test/") {
 				unstash "output"
-				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/cinchpin down"
+				sh "../../linchpin/bin/teardown inventories/builder.inventory"
+				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v down builder"
 			}
 		}
 	}

@@ -36,6 +36,7 @@ setup(
     entry_points={
         'console_scripts': [
             'cinch=cinch.bin.entry_point:cinch',
+            'teardown=cinch.bin.entry_point:teardown',
             'cinchpin=cinch.bin.entry_point:cinchpin'
         ]
     },
