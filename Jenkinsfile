@@ -43,6 +43,7 @@ try {
 	stage("Tier 1") {
 		node("cinch-test-builder") {
 			checkout scm
+			sh "tox --version"
 			sh "tox -e lint"
 		}
 	}
