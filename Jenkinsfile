@@ -13,7 +13,21 @@
 *
 * Teardown resources
 */
-def topologyBranch = "master"
+def topologyBranch = "master";
+def createBuild(String target) {
+	return {
+		node("cinch-test-builder") {
+			checkout scm
+			// Virtualenv lines temporary until Fedora builds available
+			sh "virtualenv tox"
+			sh "tox/bin/pip install pip==9.0.1"
+			sh "tox/bin/pip install tox==2.7.0"
+			sh "tox/bin/tox --version"
+			sh "tox/bin/tox -e " + target
+		}
+	};
+}
+
 
 try {
 	stage("Provision") {
@@ -45,20 +59,6 @@ try {
 	}
 
 	stage("Tier 1") {
-		def createBuild(String target) {
-			return {
-				node("cinch-test-builder") {
-					checkout scm
-					// Virtualenv lines temporary until Fedora builds available
-					sh "virtualenv tox"
-					sh "tox/bin/pip install pip==9.0.1"
-					sh "tox/bin/pip install tox==2.7.0"
-					sh "tox/bin/tox --version"
-					sh "tox/bin/tox -e " + target
-				}
-			};
-		}
-
 		def targets = ["lint", "docs", "py27"];
 		def builds = [:];
 		for (String target : targets) {
