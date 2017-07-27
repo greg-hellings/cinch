@@ -24,7 +24,7 @@ def cinch_generic(playbook):
             inventory = path.join(getcwd(), args.inventory)
     else:
         raise Exception('Inventory path needs to be non-empty')
-    exit_code = call_ansible(inventory, 'site.yml', args.args)
+    exit_code = call_ansible(inventory, playbook, args.args)
     sys.exit(exit_code)
 
 

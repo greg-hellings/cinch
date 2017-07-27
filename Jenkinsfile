@@ -52,7 +52,7 @@ try {
 			sh "tox/bin/pip install pip==9.0.1"
 			sh "tox/bin/pip install tox==2.7.0"
 			sh "tox/bin/tox --version"
-			sh "tox/bin/tox -e lint"
+			sh "tox/bin/tox -e lint,docs,py27"
 		}
 	}
 } finally {
