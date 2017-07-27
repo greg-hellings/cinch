@@ -28,6 +28,9 @@ try {
 				sh "ln -s /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages"
 			}
 			sh "linchpin/bin/pip install -U pip==9.0.1"
+			// Installing from moving source target depends on the following releases
+			// linchpin needs to support openstack userdata variables (v1.1?)
+			// cinch needs to support the tox testing builds (v0.8?)
 			sh "linchpin/bin/pip install https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz https://github.com/greg-hellings/cinch/archive/tox.tar.gz"
 			dir('topology-dir/test/') {
 				// Clean the cruft from previous runs, first
@@ -43,8 +46,12 @@ try {
 	stage("Tier 1") {
 		node("cinch-test-builder") {
 			checkout scm
-			sh "tox --version"
-			sh "tox -e lint"
+			// Virtualenv lines temporary until Fedora builds available
+			sh "virtualenv tox"
+			sh "tox/bin/pip install pip==9.0.1"
+			sh "tox/bin/pip install tox==2.4.0"
+			sh "tox/bin/tox --version"
+			sh "tox/bin/tox -e lint"
 		}
 	}
 } finally {
