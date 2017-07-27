@@ -1,6 +1,11 @@
 # Override with an array of objects like you would find in playbook/group_vars/rhel7
 # if you want a different set of repositories than this package installs by default
 repositories: []
+# By and large the repositories specified in the host configurations are sufficient
+# for usage. However, there are definitely cases where this might not be so. In that
+# case, additional repositories can be added through this variable without clobbering
+# the default Jenkins-required respositories that are needed
+extra_repositories: []
 
 # Override with an array of strings that are URLs to repository files, if you want
 # them downloaded into the target /etc/yum.repos.d/ folder so that they can be
