@@ -25,3 +25,9 @@
         groups: docker
         append: true
         state: present
+
+    - name: start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true

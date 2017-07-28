@@ -54,10 +54,11 @@ try {
 				// Clean the cruft from previous runs, first
 				sh "rm -rf inventories/*.inventory resources/*.output"
 				sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
+				// Bring up the necessary hosts for our job
 				sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				stash name: "output", includes: "inventories/*.inventory,resources/*"
 				sh "PATH=${WORKSPACE}/linchpin/bin/:${PATH} cinch inventories/builder.inventory"
-				// Configure the host for building the Docker images, later on
+				// Configure the host for building and running tests
 				sh "../../linchpin/bin/ansible-playbook -i inventories/builder.inventory" +
 				   " ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"
 			}
