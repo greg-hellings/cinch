@@ -1,4 +1,4 @@
-jmaster ansible_connection=docker
+jmaster ansible_host=jmaster_f26 ansible_connection=docker
 
 [fedora]
 jmaster

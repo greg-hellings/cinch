@@ -1,4 +1,4 @@
-jmaster ansible_connection=docker
+jmaster ansible_host=jmaster_cent7 ansible_connection=docker
 
 [cent7]
 jmaster

@@ -5,7 +5,8 @@ cinch="$(readlink -f "$(dirname "${0}")/../")"
 container_base="${1}"
 inventory="${2}"
 pkg_mgr="${3}"
-container_name=jmaster
+name_suffix="${4}"
+container_name="jmaster_${name_suffix}"
 # Extracts the version line from the setup.py script, and trims off the rest of the line to leave
 # only the expected version
 cinch_version=$(grep "${cinch}/setup.py" -e 'version=' | sed -e "s/.*version='\(.*\)'.*/\1/")

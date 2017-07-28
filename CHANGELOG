@@ -1,3 +1,9 @@
+v 0.8.0
+- Moved tests to tox
+- Added Jenkinsfile to expose full testing
+- Bumped Fedora builds to Fedora 26
+- Added playbook to configure a build server for tests/image builds
+
 v 0.7.1 (30 June 2017)
 - Updated Jenkins repo URL
 - Added ability to exclude changes to Jenkins plugins+configuration
