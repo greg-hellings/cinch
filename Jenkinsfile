@@ -35,7 +35,7 @@ try {
 			dir("topology-dir") {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
 			}
-			dic("cinch") {
+			dir("cinch") {
 				checkout scm
 			}
 			// Avoid re-creating this every time we run
