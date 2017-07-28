@@ -56,12 +56,10 @@ try {
 				sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
 				sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				stash name: "output", includes: "inventories/*.inventory,resources/*"
-				withEnv(["PATH = ${WORKSPACE}/linchpin/bin:${PATH}"]) {
-					sh "cinch inventories/builder.inventory"
-					// Configure the host for building the Docker images, later on
-					sh "ansible-playbook -i inventories/builder.inventory" +
-					   " ${WORKSPACE}/cinch/playbooks/builder.yml"
-				}
+				sh "PATH=${WORKSPACE}/linchpin/bin/:${PATH} cinch inventories/builder.inventory"
+				// Configure the host for building the Docker images, later on
+				sh "../../linchpin/bin/ansible-playbook -i inventories/builder.inventory" +
+				   " ${WORKSPACE}/cinch/playbooks/builder.yml"
 			}
 		}
 	}
