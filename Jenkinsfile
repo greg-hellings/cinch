@@ -59,7 +59,7 @@ try {
 				sh "PATH=${WORKSPACE}/linchpin/bin/:${PATH} cinch inventories/builder.inventory"
 				// Configure the host for building the Docker images, later on
 				sh "../../linchpin/bin/ansible-playbook -i inventories/builder.inventory" +
-				   " ${WORKSPACE}/cinch/playbooks/builder.yml"
+				   " ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"
 			}
 		}
 	}
