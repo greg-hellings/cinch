@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set-ve
+set -ve
 cinch="$(readlink -f "$(dirname "$0")/../")"
 base_image="${1}"
 inventory="${2}"
