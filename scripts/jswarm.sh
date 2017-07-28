@@ -16,7 +16,7 @@ ansible -i /dev/null \
 	localhost \
 	-m docker_container \
 	-a "image=${base_image} name=jswarm detach=true tty=true command=/bin/bash"
-docker exec -it jswarm "${module}" install -y python
+docker exec -i jswarm "${module}" install -y python
 ansible -i "${inventory}" all -m "${module}" -a "name=sudo state=present"
 ansible -i "${inventory}" all -m "${module}" -a "name=* state=latest"
 echo "Building container with Ansible"

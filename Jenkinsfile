@@ -76,11 +76,9 @@ try {
 
 	stage "Build Images"
 	targets = ["cent6_slave", "cent7_slave", "cent7_master", "fedora_slave"];
-	builds = [:];
 	for( String target : targets ) {
-		builds[target] = createBuild(target);
+		createBuild(target)();
 	}
-	parallel builds;
 
 } finally {
 	stage("Tear Down") {
