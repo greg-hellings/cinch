@@ -3,6 +3,7 @@ v 0.8.0
 - Added Jenkinsfile to expose full testing
 - Bumped Fedora builds to Fedora 26
 - Added playbook to configure a build server for tests/image builds
+- Eliminated all remaining lint warnings, made yamllint warnings errors
 
 v 0.7.1 (30 June 2017)
 - Updated Jenkins repo URL

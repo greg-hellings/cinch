@@ -28,7 +28,7 @@ jswarm_filename: swarm-client-{{ jswarm_version }}-jar-with-dependencies.jar
 # Define the var ntp_servers as below to optionally override default NTP
 # server lines, including options such as iburst.
 # Left undefined, the distro defaults will be used.
-#ntp_servers:
+# ntp_servers:
 #    - "server 0.time.example.com iburst"
 #    - "server 1.time.example.com iburst"
 #    - "server 2.time.example.com iburst"
