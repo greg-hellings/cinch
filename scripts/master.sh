@@ -28,7 +28,7 @@ ansible -i /dev/null \
 		--system' \
 		privileged=true"
 # Fedora is lacking python in base image
-docker exec -it "${container_name}" "${pkg_mgr}" install -y python
+docker exec -i "${container_name}" "${pkg_mgr}" install -y python
 ansible -i "${inventory}" \
 	all \
 	-m "${pkg_mgr}" \
