@@ -54,6 +54,9 @@ try {
 				sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				stash name: "output", includes: "inventories/*.inventory,resources/*"
 				sh "PATH=\"\${WORKSPACE}/linchpin/bin/:\$PATH\" cinch inventories/builder.inventory"
+				// Configure the host for building the Docker images, later on
+				sh "../../linchpin/bin/ansible -m user -a 'name=jenkins groups=docker append=true' all " +
+				   "-i inventories/builder.inventory"
 				sh "../../linchpin/bin/ansible -m service -a 'name=docker state=started enabled=true' all " +
 				   "-i inventories/builder.inventory"
 			}
