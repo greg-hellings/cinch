@@ -1,4 +1,4 @@
-slave ansible_connection=docker ansible_host=jswarm
+slave ansible_connection=docker ansible_host=jswarm_cent6
 
 [jenkins_slave]
 slave
