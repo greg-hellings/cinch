@@ -54,8 +54,8 @@ try {
 				sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				stash name: "output", includes: "inventories/*.inventory,resources/*"
 				sh "PATH=\"\${WORKSPACE}/linchpin/bin/:\$PATH\" cinch inventories/builder.inventory"
-				sh "../../linchpin/bin/ansible -m service -a 'name=docker state=started enabled=true' all -i "
-				   + "inventories/builder.inventory"
+				sh "../../linchpin/bin/ansible -m service -a 'name=docker state=started enabled=true' all " +
+				   "-i inventories/builder.inventory"
 			}
 		}
 	}
