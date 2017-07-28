@@ -61,7 +61,16 @@ try {
 	stage("Tier 1") {
 		def targets = ["lint", "docs", "py27"];
 		def builds = [:];
-		for (String target : targets) {
+		for( String target : targets ) {
+			builds[target] = createBuild(target);
+		}
+		parallel builds;
+	}
+
+	stage("Build Images") {
+		def targets = ["cent6_slave", "cent7_slave", "cent7_master", "fedora_slave"];
+		def builds = [:];
+		for( String target : targets ) {
 			builds[target] = createBuild(target);
 		}
 		parallel builds;
