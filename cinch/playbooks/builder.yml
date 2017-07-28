@@ -1,0 +1,27 @@
+- hosts: builder
+  tasks:
+    - name: install dependencies
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - docker
+        - python-tox
+        - python-virtualenv
+        - ShellCheck
+        - python-devel
+        - make
+        - python34
+        - python34-devel
+
+    - name: create docker group
+      groups:
+        name: docker
+        state: present
+
+    - name: add Jenkins user to docker group
+      user:
+        name: jenkins
+        groups: docker
+        append: true
+        state: present

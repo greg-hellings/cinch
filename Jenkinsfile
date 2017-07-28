@@ -35,6 +35,9 @@ try {
 			dir("topology-dir") {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
 			}
+			dic("cinch") {
+				checkout scm
+			}
 			// Avoid re-creating this every time we run
 			if ( !fileExists( "linchpin" ) ) {
 				sh "virtualenv --no-setuptools linchpin"
@@ -53,26 +56,25 @@ try {
 				sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
 				sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
 				stash name: "output", includes: "inventories/*.inventory,resources/*"
-				sh "PATH=\"\${WORKSPACE}/linchpin/bin/:\$PATH\" cinch inventories/builder.inventory"
-				// Configure the host for building the Docker images, later on
-				sh "../../linchpin/bin/ansible -m group -a 'name=docker state=present' all " +
-				   "-i inventories/builder.inventory"
-				sh "../../linchpin/bin/ansible -m user -a 'name=jenkins groups=docker append=true' all " +
-				   "-i inventories/builder.inventory"
-				sh "../../linchpin/bin/ansible -m service -a 'name=docker state=started enabled=true' all " +
-				   "-i inventories/builder.inventory"
+				withEnv(["PATH = ${WORKSPACE}/linchpin/bin:${env.PATH}"]) {
+					sh "cinch inventories/builder.inventory"
+					// Configure the host for building the Docker images, later on
+					sh "ansible-playbook -i inventories/builder.inventory" +
+					   " ${WORKSPACE}/cinch/playbooks/builder.yml"
+				}
 			}
 		}
 	}
 
-	stage("Tier 1") {
-		def targets = ["lint", "docs", "py27"];
-		def builds = [:];
-		for( String target : targets ) {
-			builds[target] = createBuild(target);
-		}
-		parallel builds;
+
+	stage "Tier 1"
+	def targets = ["lint", "docs", "py27"];
+	def builds = [:];
+	for( String target : targets ) {
+		builds[target] = createBuild(target);
 	}
+	parallel builds;
+
 
 	stage("Build Images") {
 		def targets = ["cent6_slave", "cent7_slave", "cent7_master", "fedora_slave"];
