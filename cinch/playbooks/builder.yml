@@ -15,7 +15,7 @@
         - python34-devel
 
     - name: create docker group
-      groups:
+      group:
         name: docker
         state: present
 
