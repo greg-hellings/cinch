@@ -76,14 +76,14 @@ try {
 	parallel builds;
 
 
-	stage("Build Images") {
-		def targets = ["cent6_slave", "cent7_slave", "cent7_master", "fedora_slave"];
-		def builds = [:];
-		for( String target : targets ) {
-			builds[target] = createBuild(target);
-		}
-		parallel builds;
+	stage "Build Images"
+	targets = ["cent6_slave", "cent7_slave", "cent7_master", "fedora_slave"];
+	builds = [:];
+	for( String target : targets ) {
+		builds[target] = createBuild(target);
 	}
+	parallel builds;
+
 } finally {
 	stage("Tear Down") {
 		node {
