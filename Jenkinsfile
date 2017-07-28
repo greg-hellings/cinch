@@ -77,7 +77,7 @@ try {
 	stage "Build Images"
 	targets = ["cent6_slave", "cent7_slave", "fedora_slave",
                "fedora_master", "cent7_master"];
-	build = [:];
+	builds = [:];
 	for( String target : targets ) {
 		builds[target] = createBuild(target);
 	}
