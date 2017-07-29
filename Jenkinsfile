@@ -45,78 +45,83 @@ def createDeploy(String target) {
 		node {
 			unstash "builds";
 			virtualenv "venv", ["dist/cinch*.whl"]
-			venvExec "venv", ["cinch \"${target}\""]
+			venvExec "venv", ["cinch \"inventories/${target}.inventory\""]
 		}
 	}
 }
 
 
 try {
-	stage "Provision"
-	node {
-		dir("topology-dir") {
-			git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
-		}
-		dir("cinch") {
-			checkout scm
-		}
-		// Installing from moving source target depends on the following releases
-		// linchpin needs to support openstack userdata variables (v1.1?)
-		// cinch needs to support the tox testing builds (v0.8?)
-		// cinch needs to support discrete teardown command (v0.8?)
-		virtualenv 'linchpin', ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"]
-		dir('topology-dir/test/') {
-			// Clean the cruft from previous runs, first
-			sh """rm -rf inventories/*.inventory resources/*.output
-			      chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central
-			      # Bring up the necessary hosts for our job
-			      . ../../linchpin/bin/activate
-			      WORKSPACE="\$(pwd)" linchpin --creds-path credentials -v up"""
-			stash name: "output", includes: "inventories/*.inventory,resources/*"
-			venvExec "../../linchpin",
-			         ["cinch inventories/builder.inventory",
-			          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
-		}
-	}
-
-
-	stage "Build artifact"
-	node {
-		virtualenv "venv", ["wheel"]
-		dir("cinch") {
-			checkout scm
-			venvExec "../venv", ["python setup.py sdist bdist_wheel"]
-			stash name: "builds", includes: "dist/*"
+	stage "Provision" {
+		node {
+			dir("topology-dir") {
+				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
+			}
+			dir("cinch") {
+				checkout scm
+			}
+			// Installing from moving source target depends on the following releases
+			// linchpin needs to support openstack userdata variables (v1.1?)
+			// cinch needs to support the tox testing builds (v0.8?)
+			// cinch needs to support discrete teardown command (v0.8?)
+			virtualenv 'linchpin', ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"]
+			dir('topology-dir/test/') {
+				// Clean the cruft from previous runs, first
+				sh """rm -rf inventories/*.inventory resources/*.output
+				      chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central
+				      # Bring up the necessary hosts for our job
+				      . ../../linchpin/bin/activate
+				      WORKSPACE="\$(pwd)" linchpin --creds-path credentials -v up"""
+				stash name: "output", includes: "inventories/*.inventory,resources/*"
+				venvExec "../../linchpin",
+				         ["cinch inventories/builder.inventory",
+				          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
+			}
 		}
 	}
 
 
-	stage "Tier 1"
-	def targets = ["lint", "docs", "py27"];
-	def builds = [:];
-	for( String target : targets ) {
-		builds[target] = createBuild(target);
+	stage "Build artifact" {
+		node {
+			virtualenv "venv", ["wheel"]
+			dir("cinch") {
+				checkout scm
+				venvExec "../venv", ["python setup.py sdist bdist_wheel"]
+				stash name: "builds", includes: "dist/*"
+			}
+		}
 	}
-	parallel builds;
 
 
-	stage "Tier 2"
-	targets = ["rhel7_rhel7_nosec_nossl"];
-	build = [:];
-	for( String target : targets ) {
-		builds[target] = createDeploy(target);
+	stage "Tier 1" {
+		def targets = ["lint", "docs", "py27"];
+		def builds = [:];
+		for( String target : targets ) {
+			builds[target] = createBuild(target);
+		}
+		parallel builds;
 	}
-	parallel builds;
 
 
-	stage "Build Images"
-	targets = ["cent6_slave", "cent7_slave", "fedora_slave",
-               "fedora_master", "cent7_master"];
-	builds = [:];
-	for( String target : targets ) {
-		builds[target] = createBuild(target);
+	stage "Tier 2" {
+		targets = ["rhel7_rhel7_nosec_nossl"];
+		builds = [:];
+		for( String target : targets ) {
+			builds[target] = createDeploy(target);
+		}
+		parallel builds;
 	}
-	parallel builds;
+
+
+	stage "Build Images" {
+		targets = ["cent6_slave", "cent7_slave", "fedora_slave",
+		           "fedora_master", "cent7_master"];
+		builds = [:];
+		for( String target : targets ) {
+			builds[target] = createBuild(target);
+		}
+		parallel builds;
+	}
 
 } finally {
 	stage("Tear Down") {
