@@ -52,7 +52,7 @@ def createDeploy(String target) {
 
 
 try {
-	stage "Provision" {
+	stage("Provision") {
 		node {
 			dir("topology-dir") {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
@@ -81,7 +81,7 @@ try {
 	}
 
 
-	stage "Build artifact" {
+	stage("Build artifact") {
 		node {
 			virtualenv "venv", ["wheel"]
 			dir("cinch") {
@@ -93,7 +93,7 @@ try {
 	}
 
 
-	stage "Tier 1" {
+	stage("Tier 1") {
 		def targets = ["lint", "docs", "py27"];
 		def builds = [:];
 		for( String target : targets ) {
@@ -103,7 +103,7 @@ try {
 	}
 
 
-	stage "Tier 2" {
+	stage("Tier 2") {
 		targets = ["rhel7_rhel7_nosec_nossl"];
 		builds = [:];
 		for( String target : targets ) {
@@ -113,7 +113,7 @@ try {
 	}
 
 
-	stage "Build Images" {
+	stage("Build Images") {
 		targets = ["cent6_slave", "cent7_slave", "fedora_slave",
 		           "fedora_master", "cent7_master"];
 		builds = [:];
