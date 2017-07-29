@@ -43,9 +43,9 @@ def createBuild(String target) {
 def createDeploy(String target) {
 	return {
 		node {
-			unstash "builds";
+			unstash "build";
 			virtualenv "venv", ["dist/cinch*.whl"]
-			unstash "outputs"
+			unstash "output"
 			venvExec "venv", ["cinch \"inventories/${target}.inventory\""]
 		}
 	}
@@ -88,7 +88,7 @@ try {
 			dir("cinch") {
 				checkout scm
 				venvExec "../venv", ["python setup.py sdist bdist_wheel"]
-				stash name: "builds", includes: "dist/*"
+				stash name: "build", includes: "dist/*"
 			}
 		}
 	}
