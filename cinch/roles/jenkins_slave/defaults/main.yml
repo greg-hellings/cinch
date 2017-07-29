@@ -1,6 +1,6 @@
-# These are arguments which you will need to override
+# These are arguments which you will need to define
 # URL for the Jenkins master this slave should attach to
-jenkins_url: http://example.com:8080/jenkins/
+# jenkins_master_url: http://example.com:8080/jenkins/
 
 # The Jenkins name for the slave
 jslave_name: "{{ inventory_hostname }}"

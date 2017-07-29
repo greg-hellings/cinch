@@ -27,6 +27,18 @@ def createBuild(String target) {
 		}
 	};
 }
+def createDeploy(String target) {
+	return {
+		node {
+			sh "virtualenv venv";
+			sh "venv/bin/pip install pip==9.0.1";
+			sh "venv/bin/pip install cinch";
+			unstash "builds";
+			sh "venv/bin/pip install dist/cinch*.whl";
+			sh "venv/bin/cinch " + target;
+		}
+	}
+}
 
 
 try {
@@ -55,7 +67,7 @@ try {
 			sh "rm -rf inventories/*.inventory resources/*.output"
 			sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
 			// Bring up the necessary hosts for our job
-			sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up builder"
+			sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up"
 			stash name: "output", includes: "inventories/*.inventory,resources/*"
 			sh "PATH=${WORKSPACE}/linchpin/bin/:${PATH} cinch inventories/builder.inventory"
 			// Configure the host for building and running tests
@@ -65,11 +77,33 @@ try {
 	}
 
 
+	stage "Build artifact"
+	node {
+		sh "virtualenv venv"
+		sh "venv/bin/pip install pip==9.0.1"
+		sh "venv/bin/pip install wheel"
+		dir("cinch") {
+			checkout scm
+			sh "../venv/bin/python setup.py sdist,bdist_wheel"
+			sthash name: "builds", includes: "dist/*"
+		}
+	}
+
+
 	stage "Tier 1"
 	def targets = ["lint", "docs", "py27"];
 	def builds = [:];
 	for( String target : targets ) {
 		builds[target] = createBuild(target);
+	}
+	parallel builds;
+
+
+	stage "Tier 2"
+	targets = ["rhel7_rhel7_nosec_nossl"];
+	build = [:];
+	for( String target : targets ) {
+		builds[target] = createDeploy(target);
 	}
 	parallel builds;
 
@@ -92,7 +126,7 @@ try {
 			dir("topology-dir/test/") {
 				unstash "output"
 				sh "PATH=\"\${WORKSPACE}/linchpin/bin/:\$PATH\" ../../linchpin/bin/teardown inventories/builder.inventory"
-				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v down builder"
+				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v down"
 			}
 		}
 	}
