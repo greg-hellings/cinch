@@ -87,13 +87,10 @@ try {
 
 	stage "Build artifact"
 	node {
-		sh """virtualenv venv
-		      . venv/bin/activate
-		      pip install pip==9.0.1"
-		      pip install wheel"""
+		virtualenv "venv", ["wheel"]
 		dir("cinch") {
 			checkout scm
-			sh "../venv/bin/python setup.py sdist bdist_wheel"
+			venvExec "../venv", ["python setup.py sdist bdist_wheel"]
 			stash name: "builds", includes: "dist/*"
 		}
 	}
