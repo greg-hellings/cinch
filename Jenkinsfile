@@ -21,7 +21,7 @@ def virtualenv(String name, List deps=[]) {
 	sh """if [ ! -d "${name}" ]; then virtualenv --no-setuptools "${name}"; fi
 	      . "${name}/bin/activate"
 	      if [ ! -d "${name}/bin/pip" ]; then curl https://bootstrap.pypa.io/get-pip.py | python; fi
-	      ln -sf /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages
+	      ln -sf /usr/lib64/python2.7/site-packages/selinux "${name}/lib/python2.7/site-packages"
 	      pip install ${deps.join(' ')}"""
 }
 def venvExec(String ctx, List<String> cmds) {
@@ -60,7 +60,6 @@ try {
 		dir("cinch") {
 			checkout scm
 		}
-		// Avoid re-creating this every time we run
 		// Installing from moving source target depends on the following releases
 		// linchpin needs to support openstack userdata variables (v1.1?)
 		// cinch needs to support the tox testing builds (v0.8?)
