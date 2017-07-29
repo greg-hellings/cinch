@@ -84,7 +84,7 @@ try {
 		sh "venv/bin/pip install wheel"
 		dir("cinch") {
 			checkout scm
-			sh "../venv/bin/python setup.py sdist,bdist_wheel"
+			sh "../venv/bin/python setup.py sdist bdist_wheel"
 			sthash name: "builds", includes: "dist/*"
 		}
 	}
