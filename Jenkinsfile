@@ -45,6 +45,7 @@ def createDeploy(String target) {
 		node {
 			unstash "builds";
 			virtualenv "venv", ["dist/cinch*.whl"]
+			unstash "outputs"
 			venvExec "venv", ["cinch \"inventories/${target}.inventory\""]
 		}
 	}
@@ -115,7 +116,7 @@ try {
 
 	stage("Build Images") {
 		targets = ["cent6_slave", "cent7_slave", "fedora_slave",
-		           "fedora_master", "cent7_master"];
+		           "cent7_master"];
 		builds = [:];
 		for( String target : targets ) {
 			builds[target] = createBuild(target);
