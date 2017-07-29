@@ -14,28 +14,40 @@
 * Teardown resources
 */
 def topologyBranch = "master";
+def virtualenv(String name, List deps=[]) {
+	sh """virtualenv --no-setuptools "${name}"
+	      . "${name}/bin/activate"
+	      curl https://bootstrap.pypa.io/get-pip.py | python
+	      ln -s /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages
+	      pip install ${deps.join(' ')}"""
+}
+def venvExec(String ctx, List<String> cmds) {
+	sh """. "${ctx}/bin/activate"
+	      ${cmds.join('\n')}"""
+}
 def createBuild(String target) {
 	return {
 		node("cinch-test-builder") {
 			checkout scm
 			// Virtualenv lines temporary until Fedora builds available
-			sh "virtualenv tox"
-			sh "tox/bin/pip install pip==9.0.1"
-			sh "tox/bin/pip install tox==2.7.0"
-			sh "tox/bin/tox --version"
-			sh "tox/bin/tox -e " + target
+			sh """virtualenv tox
+			      . tox/bin/activate
+			      pip install pip==9.0.1
+			      pip install tox==2.7.0
+			      tox --version
+			      tox -e """ + target
 		}
 	};
 }
 def createDeploy(String target) {
 	return {
 		node {
-			sh "virtualenv venv";
-			sh "venv/bin/pip install pip==9.0.1";
-			sh "venv/bin/pip install cinch";
 			unstash "builds";
-			sh "venv/bin/pip install dist/cinch*.whl";
-			sh "venv/bin/cinch " + target;
+			sh """virtualenv venv
+			      venv/bin/pip install pip==9.0.1
+			      venv/bin/pip install cinch
+			      venv/bin/pip install dist/cinch*.whl
+			      venv/bin/cinch """ + target;
 		}
 	}
 }
@@ -51,41 +63,38 @@ try {
 			checkout scm
 		}
 		// Avoid re-creating this every time we run
-		if ( !fileExists( "linchpin" ) ) {
-			sh "virtualenv --no-setuptools linchpin"
-			sh "curl https://bootstrap.pypa.io/get-pip.py | linchpin/bin/python"
-			sh "ln -s /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages"
-		}
-		sh "linchpin/bin/pip install -U pip==9.0.1"
 		// Installing from moving source target depends on the following releases
 		// linchpin needs to support openstack userdata variables (v1.1?)
 		// cinch needs to support the tox testing builds (v0.8?)
 		// cinch needs to support discrete teardown command (v0.8?)
-		sh "linchpin/bin/pip install https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz https://github.com/greg-hellings/cinch/archive/tox.tar.gz"
+		if ( !fileExists( "linchpin" ) ) {
+			virtualenv 'linchpin', ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"]
+		}
 		dir('topology-dir/test/') {
 			// Clean the cruft from previous runs, first
-			sh "rm -rf inventories/*.inventory resources/*.output"
-			sh "chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
-			// Bring up the necessary hosts for our job
-			sh "WORKSPACE=\"\$(pwd)\" ../../linchpin/bin/linchpin --creds-path credentials -v up"
+			sh """rm -rf inventories/*.inventory resources/*.output
+			      chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
+			      # Bring up the necessary hosts for our job
+			      . ../../linchpin/bin/activate
+			      WORKSPACE="\$(pwd)" linchpin --creds-path credentials -v up"""
 			stash name: "output", includes: "inventories/*.inventory,resources/*"
-			sh "PATH=${WORKSPACE}/linchpin/bin/:${PATH} cinch inventories/builder.inventory"
-			// Configure the host for building and running tests
-			sh "../../linchpin/bin/ansible-playbook -i inventories/builder.inventory" +
-			   " ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"
+			venvExec "../../linchpin",
+			         ["cinch inventories/builder.inventory",
+			          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
 		}
 	}
 
 
 	stage "Build artifact"
 	node {
-		sh "virtualenv venv"
-		sh "venv/bin/pip install pip==9.0.1"
-		sh "venv/bin/pip install wheel"
+		sh """virtualenv venv
+		      . venv/bin/activate
+		      pip install pip==9.0.1"
+		      pip install wheel"""
 		dir("cinch") {
 			checkout scm
 			sh "../venv/bin/python setup.py sdist bdist_wheel"
-			sthash name: "builds", includes: "dist/*"
+			stash name: "builds", includes: "dist/*"
 		}
 	}
 
