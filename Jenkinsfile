@@ -73,7 +73,7 @@ try {
 		dir('topology-dir/test/') {
 			// Clean the cruft from previous runs, first
 			sh """rm -rf inventories/*.inventory resources/*.output
-			      chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central"
+			      chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central
 			      # Bring up the necessary hosts for our job
 			      . ../../linchpin/bin/activate
 			      WORKSPACE="\$(pwd)" linchpin --creds-path credentials -v up"""
