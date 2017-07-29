@@ -13,29 +13,30 @@
 *
 * Teardown resources
 */
+// Trying to avoid "magic strings"
 def topologyBranch = "master";
+
+// Python virtualenv helper files
 def virtualenv(String name, List deps=[]) {
-	sh """virtualenv --no-setuptools "${name}"
+	sh """if [ ! -d "${name}" ]; then virtualenv --no-setuptools "${name}" fi
 	      . "${name}/bin/activate"
-	      curl https://bootstrap.pypa.io/get-pip.py | python
-	      ln -s /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages
+	      if [ ! -d "${name}/bin/pip" ]; then curl https://bootstrap.pypa.io/get-pip.py | python fi
+	      ln -sf /usr/lib64/python2.7/site-packages/selinux linchpin/lib/python2.7/site-packages
 	      pip install ${deps.join(' ')}"""
 }
 def venvExec(String ctx, List<String> cmds) {
 	sh """. "${ctx}/bin/activate"
 	      ${cmds.join('\n')}"""
 }
+
+// Generate parallel build stages
 def createBuild(String target) {
 	return {
 		node("cinch-test-builder") {
 			checkout scm
 			// Virtualenv lines temporary until Fedora builds available
-			sh """virtualenv tox
-			      . tox/bin/activate
-			      pip install pip==9.0.1
-			      pip install tox==2.7.0
-			      tox --version
-			      tox -e """ + target
+			virtualenv "tox", ["tox==2.7.0"]
+			venvExec "tox", ["tox -e \"${target}\""]
 		}
 	};
 }
@@ -43,11 +44,8 @@ def createDeploy(String target) {
 	return {
 		node {
 			unstash "builds";
-			sh """virtualenv venv
-			      venv/bin/pip install pip==9.0.1
-			      venv/bin/pip install cinch
-			      venv/bin/pip install dist/cinch*.whl
-			      venv/bin/cinch """ + target;
+			virtualenv "venv", ["dist/cinch*.whl"]
+			venvExec "venv", ["cinch \"${target}\""]
 		}
 	}
 }
@@ -67,9 +65,7 @@ try {
 		// linchpin needs to support openstack userdata variables (v1.1?)
 		// cinch needs to support the tox testing builds (v0.8?)
 		// cinch needs to support discrete teardown command (v0.8?)
-		if ( !fileExists( "linchpin" ) ) {
-			virtualenv 'linchpin', ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"]
-		}
+		virtualenv 'linchpin', ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"]
 		dir('topology-dir/test/') {
 			// Clean the cruft from previous runs, first
 			sh """rm -rf inventories/*.inventory resources/*.output
@@ -131,8 +127,9 @@ try {
 			}
 			dir("topology-dir/test/") {
 				unstash "output"
-				sh "PATH=\"\${WORKSPACE}/linchpin/bin/:\$PATH\" ../../linchpin/bin/teardown inventories/builder.inventory"
-				sh "WORKSPACE=\$(pwd) ../../linchpin/bin/linchpin --creds-path credentials -v down"
+				venvExec "../../linchpin",
+				    ["teardown inventories/builder.inventory",
+				     "WORKSPACE=\$(pwd) linchpin --creds-path credentials -v down"]
 			}
 		}
 	}
