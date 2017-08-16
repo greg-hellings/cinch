@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='cinch',
-    version='0.7.1.7',
+    version='0.7.1.8',
     description='Cinch continuous integration setup',
     long_description=description,
     url='https://github.com/RedHatQE/cinch',
@@ -29,7 +29,7 @@ setup(
     packages=find_packages(exclude=('library', 'bin')),
     include_package_data=True,
     install_requires=[
-        'ansible==2.2.1',
+        'ansible>=2.2.1',
         'plumbum>=1.6.0',
         'linchpin>=1.0.1'
     ],
