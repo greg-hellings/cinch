@@ -43,6 +43,7 @@ def createBuild(String target) {
 def createDeploy(String target) {
 	return {
 		node {
+			sh "rm -f dist/*"
 			unstash "build";
 			virtualenv "venv", ["dist/cinch*.whl"]
 			unstash "output"
