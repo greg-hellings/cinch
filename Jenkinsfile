@@ -15,6 +15,9 @@
 */
 // Trying to avoid "magic strings"
 def topologyBranch = "master";
+def ansible_cfg = """
+[defaults]
+host_key_checking=False"""
 
 // Python virtualenv helper files
 def virtualenv(String name, List deps=[]) {
@@ -47,7 +50,8 @@ def createDeploy(String target) {
 			unstash "build";
 			virtualenv "venv", ["dist/cinch*.whl"]
 			unstash "output"
-			venvExec "venv", ["ANSIBLE_HOST_KEY_CHECKING=False cinch \"inventories/${target}.inventory\""]
+			writeFile file: "ansible.cfg", text: ansible_cfg
+			venvExec "venv", ["cinch \"inventories/${target}.inventory\""]
 		}
 	}
 }
