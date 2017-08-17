@@ -47,7 +47,9 @@ def createDeploy(String target) {
 			unstash "build";
 			virtualenv "venv", ["dist/cinch*.whl"]
 			unstash "output"
-			venvExec "venv", ["cinch \"inventories/${target}.inventory\""]
+			withEnv(["ANSIBLE_HOST_KEY_CHECKING=false"]) {
+				venvExec "venv", ["cinch \"inventories/${target}.inventory\""]
+			}
 		}
 	}
 }
