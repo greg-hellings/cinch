@@ -29,7 +29,7 @@ def venvExec(String ctx, List<String> cmds) {
 	      ${cmds.join('\n')}"""
 }
 
-// Generate parallel build stages
+// Generate parallel build stages for Tier 1
 def createBuild(String target) {
 	return {
 		node("cinch-test-builder") {
@@ -40,14 +40,13 @@ def createBuild(String target) {
 		}
 	};
 }
-def createDeploy(String target) {
+// Generate parallel deploy stages for Tier 2
+def createDeploy(String target, String topologyBranch) {
 	def ansible_cfg = """
 [defaults]
 host_key_checking=False""";
 	return {
 		node {
-			// Need to be able to ignore ansible hosts
-			writeFile file: "~/ansible.cfg", text: ansible_cfg;
 			// Clean the environment. Pipeline jobs don't seem to do that
 			sh "rm -rf dist/* ${WORKSPACE}/venv"
 			// Fetch the build artifacts and install them
@@ -57,8 +56,10 @@ host_key_checking=False""";
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
 			dir("topology-dir/tests") {
+				// Need to be able to ignore ansible hosts
+				writeFile file: "ansible.cfg", text: ansible_cfg;
 				unstash "output";
-				venvExec "${WORKSPACE}/venv", ["cinch \"inventories/${target}.inventory\""]
+				venvExec "${WORKSPACE}/venv", ["cinch \"inventories/${target}.inventory\""];
 			}
 		}
 	}
@@ -68,26 +69,28 @@ host_key_checking=False""";
 try {
 	stage("Provision") {
 		node {
-			dir("topology-dir") {
-				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
-			}
-			dir("cinch") {
-				checkout scm
-			}
+			// Clean up from previous runs
+			sh "rm -rf topology-dir cinch";
 			// Installing from moving source target depends on the following releases
 			// linchpin needs to support openstack userdata variables (v1.1?)
 			// cinch needs to support the tox testing builds (v0.8?)
 			// cinch needs to support discrete teardown command (v0.8?)
-			virtualenv 'linchpin', ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"]
+			virtualenv "${WORKSPACE}/linchpin", ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
+			// This repository contains the topology files that are needed to spin up
+			// our instances with linchpin
+			dir("topology-dir") {
+				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
+			}
+			// Necessary at this step for calling Ansible to create the lint/build host
+			dir("cinch") {
+				checkout scm
+			}
 			dir('topology-dir/test/') {
-				// Clean the cruft from previous runs, first
-				sh """rm -rf inventories/*.inventory resources/*.output
-				      chmod 600 ../examples/linch-pin-topologies/openstack-master/keystore/ci-ops-central
-				      # Bring up the necessary hosts for our job
-				      . ../../linchpin/bin/activate
-				      WORKSPACE="\$(pwd)" linchpin --creds-path credentials -v up"""
+				// Spin up new instances for our testing
+				venvExec "${WORKSPACE}/linchpin",
+				      ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v up']
 				stash name: "output", includes: "inventories/*.inventory,resources/*"
-				venvExec "../../linchpin",
+				venvExec "${WORKSPACE}/linchpin",
 				         ["cinch inventories/builder.inventory",
 				          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
 			}
@@ -96,12 +99,13 @@ try {
 
 
 	stage("Build artifact") {
-		node {
-			virtualenv "venv", ["wheel"]
+		node("cinch-test-builder") {
+			// Clean from previous runs
+			sh "rm -rf cinch";
 			dir("cinch") {
-				checkout scm
-				venvExec "../venv", ["python setup.py sdist bdist_wheel"]
-				stash name: "build", includes: "dist/*"
+				checkout scm;
+				sh "python setup.py sdist bdist_wheel";
+				stash name: "build", includes: "dist/*";
 			}
 		}
 	}
@@ -121,7 +125,7 @@ try {
 		targets = ["rhel7_rhel7_nosec_nossl"];
 		builds = [:];
 		for( String target : targets ) {
-			builds[target] = createDeploy(target);
+			builds[target] = createDeploy(target, topologyBranch);
 		}
 		parallel builds;
 	}
@@ -145,7 +149,7 @@ try {
 			}
 			dir("topology-dir/test/") {
 				unstash "output"
-				venvExec "../../linchpin",
+				venvExec "${WORKSPACE}/linchpin",
 				    ["teardown inventories/builder.inventory",
 				     "WORKSPACE=\$(pwd) linchpin --creds-path credentials -v down"]
 			}

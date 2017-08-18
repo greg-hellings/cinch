@@ -13,6 +13,8 @@
         - make
         - python34
         - python34-devel
+        - python-wheel
+        - python2-pip
 
     - name: create docker group
       group:
