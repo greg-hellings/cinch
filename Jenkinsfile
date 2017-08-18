@@ -42,24 +42,24 @@ def createBuild(String target) {
 }
 // Generate parallel deploy stages for Tier 2
 def createDeploy(String target, String topologyBranch) {
-	def ansible_cfg = """
-[defaults]
-host_key_checking=False""";
+	def ansible_cfg = """[defaults]
+host_key_checking = False""";
 	return {
 		node {
 			// Clean the environment. Pipeline jobs don't seem to do that
-			sh "rm -rf dist/* ${WORKSPACE}/venv"
-			// Fetch the build artifacts and install them
-			unstash "build";
-			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
+			sh "rm -rf dist/* venv topology-dir";
 			dir("topology-dir") {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
+			// Create a virtualenv with the new test cinch instance in it
+			unstash "build";
+			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
+			// Test running cinch from the new install on the target machines
 			dir("topology-dir/tests") {
 				// Need to be able to ignore ansible hosts
 				writeFile file: "ansible.cfg", text: ansible_cfg;
 				unstash "output";
-				venvExec "${WORKSPACE}/venv", ["cinch \"inventories/${target}.inventory\""];
+				venvExec "${WORKSPACE}/venv", ["cinch inventories/${target}.inventory"];
 			}
 		}
 	}
