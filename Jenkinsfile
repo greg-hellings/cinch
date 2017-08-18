@@ -42,8 +42,6 @@ def createBuild(String target) {
 }
 // Generate parallel deploy stages for Tier 2
 def createDeploy(String target, String topologyBranch) {
-	def ansible_cfg = """[defaults]
-host_key_checking = False""";
 	return {
 		node {
 			// Clean the environment. Pipeline jobs don't seem to do that
@@ -56,7 +54,6 @@ host_key_checking = False""";
 			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
 			// Test running cinch from the new install on the target machines
 			dir("topology-dir/tests") {
-				// Need to be able to ignore ansible hosts
 				unstash "output";
 				venvExec "${WORKSPACE}/venv",
 				        ["cinch inventories/${target}.inventory"];
