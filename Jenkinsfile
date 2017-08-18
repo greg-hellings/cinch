@@ -49,7 +49,7 @@ host_key_checking=False""";
 			// Need to be able to ignore ansible hosts
 			writeFile file: "~/ansible.cfg", text: ansible_cfg;
 			// Clean the environment. Pipeline jobs don't seem to do that
-			sh "rm -f dist/* ${WORKSPACE}/venv"
+			sh "rm -rf dist/* ${WORKSPACE}/venv"
 			// Fetch the build artifacts and install them
 			unstash "build";
 			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
