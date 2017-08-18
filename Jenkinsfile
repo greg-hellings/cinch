@@ -163,8 +163,17 @@ try {
 			}
 			dir("topology-dir/test/") {
 				unstash "builder";
-				venvExec "${WORKSPACE}/linchpin",
-				    ["teardown inventories/builder.inventory || echo 'Teardown failed'"];
+				// Try to stop the swarm service on the Jenkins build slave, so that it
+				// does not stay on as a stale instance for a long time in the Jenkins
+				// master. But, don't actually bother with anything if it fails, because
+				// maybe this finally block here happened before the slave connected. We
+				// still need to try and de-provision the dynamic hosts
+				try {
+					venvExec "${WORKSPACE}/linchpin",
+						["teardown inventories/builder.inventory || echo 'Teardown failed'"];
+				} finally {
+					// nop
+				}
 				builds = [:];
 				for(String target : cinchTargets) {
 					builds[target] = createProvision(target, "down");
