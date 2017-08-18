@@ -76,7 +76,7 @@ def createDeploy(String target, String topologyBranch) {
 def createProvision(String target, String direction) {
 	return {
 		venvExec "${WORKSPACE}/linchpin", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
-		                                   + direction + target];
+		                                   + direction + ' ' + target];
 		stash name: target, includes: "inventories/*.inventory,resources/*";
 	};
 }
