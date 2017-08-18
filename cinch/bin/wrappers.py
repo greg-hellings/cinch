@@ -36,7 +36,8 @@ def call_ansible(inventory, playbook, *args):
         os.path.join(BASE, playbook),
         '-i', inventory,
         '-v',
-        '--ssh-common-args=-o StrictHostKeyChecking=no'
+        '--ssh-common-args=-o StrictHostKeyChecking=no ' +
+        '-o UserKnownHostsFile=/dev/null'
     ]
     ansible_args.extend(args)
     ansible = local['ansible-playbook']
