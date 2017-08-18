@@ -15,6 +15,17 @@
 */
 // Trying to avoid "magic strings"
 def topologyBranch = "master";
+def cinchTargets = ["rhel7_nosec_nossl",
+                    "rhel7_nosec_ssl",
+                    "rhel7_sec_nossl",
+                    "rhel7_sec_ssl"];
+def toxTargets = ["lint",
+                  "docs",
+                  "py27"];
+def images = ["cent6_slave",
+              "cent7_slave",
+              "fedora_slave",
+              "cent7_master"];
 
 // Python virtualenv helper files
 def virtualenv(String name, List deps=[]) {
@@ -54,14 +65,21 @@ def createDeploy(String target, String topologyBranch) {
 			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
 			// Test running cinch from the new install on the target machines
 			dir("topology-dir/test/") {
-				unstash "output";
+				unstash target;
 				venvExec "${WORKSPACE}/venv",
 				        ["cinch inventories/${target}.inventory"];
 			}
 		}
 	}
 }
-
+// Execute a parallel provision step
+def createProvision(String target, String direction) {
+	return {
+		venvExec "${WORKSPACE}/linchpin", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
+		                                   + direction + target];
+		stash name: target, includes: "inventories/*.inventory,resources/*";
+	};
+}
 
 try {
 	stage("Provision") {
@@ -84,9 +102,12 @@ try {
 			}
 			dir('topology-dir/test/') {
 				// Spin up new instances for our testing
-				venvExec "${WORKSPACE}/linchpin",
-				      ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v up']
-				stash name: "output", includes: "inventories/*.inventory,resources/*"
+				def provisions = [:];
+				for( String target : cinchTargets) {
+					provisions[target] = createProvision(target, "up");
+				}
+				provisions["builder"] = createProvision("builder", "up");
+				parallel provisions
 				venvExec "${WORKSPACE}/linchpin",
 				         ["cinch inventories/builder.inventory",
 				          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
@@ -109,9 +130,8 @@ try {
 
 
 	stage("Tier 1") {
-		def targets = ["lint", "docs", "py27"];
 		def builds = [:];
-		for( String target : targets ) {
+		for( String target : toxTargets ) {
 			builds[target] = createBuild(target);
 		}
 		parallel builds;
@@ -119,9 +139,8 @@ try {
 
 
 	stage("Tier 2") {
-		targets = ["rhel7_nosec_nossl", "rhel7_nosec_ssl"];
 		builds = [:];
-		for( String target : targets ) {
+		for( String target : cinchTargets ) {
 			builds[target] = createDeploy(target, topologyBranch);
 		}
 		parallel builds;
@@ -129,11 +148,9 @@ try {
 
 
 	stage("Build Images") {
-		targets = ["cent6_slave", "cent7_slave", "fedora_slave",
-		           "cent7_master"];
 		builds = [:];
-		for( String target : targets ) {
-			builds[target] = createBuild(target);
+		for( String image : images ) {
+			builds[image] = createBuild(image);
 		}
 		parallel builds;
 	}
@@ -142,13 +159,18 @@ try {
 	stage("Tear Down") {
 		node {
 			dir("topology-dir") {
-				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch
+				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
 			dir("topology-dir/test/") {
-				unstash "output"
+				unstash "builder";
 				venvExec "${WORKSPACE}/linchpin",
-				    ["teardown inventories/builder.inventory || echo 'Teardown failed'",
-				     "WORKSPACE=\$(pwd) linchpin --creds-path credentials -v down"]
+				    ["teardown inventories/builder.inventory || echo 'Teardown failed'"];
+				builds = [:];
+				for(String target : cinchTargets) {
+					builds = createProvision(target, "down");
+				}
+				builds = createProvision("builder", "down');
+				parallel builds;
 			}
 		}
 	}
