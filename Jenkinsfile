@@ -150,7 +150,7 @@ try {
 			dir("topology-dir/test/") {
 				unstash "output"
 				venvExec "${WORKSPACE}/linchpin",
-				    ["teardown inventories/builder.inventory",
+				    ["teardown inventories/builder.inventory || echo 'Teardown failed'",
 				     "WORKSPACE=\$(pwd) linchpin --creds-path credentials -v down"]
 			}
 		}
