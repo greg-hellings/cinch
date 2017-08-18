@@ -53,7 +53,7 @@ def createDeploy(String target, String topologyBranch) {
 			unstash "build";
 			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
 			// Test running cinch from the new install on the target machines
-			dir("topology-dir/tests") {
+			dir("topology-dir/test/") {
 				unstash "output";
 				venvExec "${WORKSPACE}/venv",
 				        ["cinch inventories/${target}.inventory"];
