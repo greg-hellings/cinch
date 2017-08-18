@@ -7,7 +7,7 @@
   - name: construct command line for SSH check
     set_fact:
       check_ssh_cmd: >-
-        ansible --ssh-extra-args='-o StrictHostKeyChecking=no'
+        ansible --ssh-extra-args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
         -i {{ inventory_dir }}/{{ (inventory_file | string | default('')) | basename }}
         {{ host }} -m ping
 
