@@ -57,7 +57,7 @@ host_key_checking = False""";
 			// Test running cinch from the new install on the target machines
 			dir("topology-dir/tests") {
 				// Need to be able to ignore ansible hosts
-				writeFile file: "ansible.cfg", text: ansible_cfg;
+				writeFile file: "~/.ansible.cfg", text: ansible_cfg;
 				unstash "output";
 				venvExec "${WORKSPACE}/venv",
 				        ["export ANSIBLE_HOST_KEY_CHECKING=False",
