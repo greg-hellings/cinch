@@ -167,9 +167,9 @@ try {
 				    ["teardown inventories/builder.inventory || echo 'Teardown failed'"];
 				builds = [:];
 				for(String target : cinchTargets) {
-					builds = createProvision(target, "down");
+					builds[target] = createProvision(target, "down");
 				}
-				builds = createProvision("builder", "down');
+				builds[target] = createProvision("builder", "down');
 				parallel builds;
 			}
 		}
