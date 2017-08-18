@@ -59,9 +59,7 @@ host_key_checking = False""";
 				// Need to be able to ignore ansible hosts
 				writeFile file: "ansible.cfg", text: ansible_cfg;
 				unstash "output";
-				withEnv(["ANSIBLE_HOST_KEY_CHECKING=False"]) {
-					venvExec "${WORKSPACE}/venv", ["cinch inventories/${target}.inventory"];
-				}
+				venvExec "${WORKSPACE}/venv", ["ANSIBLE_HOST_KEY_CHECKING=False cinch inventories/${target}.inventory"];
 			}
 		}
 	}
