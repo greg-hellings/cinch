@@ -119,7 +119,7 @@ try {
 
 
 	stage("Tier 2") {
-		targets = ["rhel7_rhel7_nosec_nossl"];
+		targets = ["rhel7_nosec_nossl", "rhel7_nosec_ssl"];
 		builds = [:];
 		for( String target : targets ) {
 			builds[target] = createDeploy(target, topologyBranch);
