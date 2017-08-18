@@ -50,7 +50,7 @@ host_key_checking=False""";
 			unstash "build";
 			virtualenv "venv", ["dist/cinch*.whl"];
 			unstash "output";
-			writeFile file: "ansible.cfg", text: ansible_cfg;
+			writeFile file: "~/ansible.cfg", text: ansible_cfg;
 			venvExec "venv", ["cinch \"inventories/${target}.inventory\""]
 		}
 	}
