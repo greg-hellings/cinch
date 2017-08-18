@@ -46,12 +46,20 @@ def createDeploy(String target) {
 host_key_checking=False""";
 	return {
 		node {
-			sh "rm -f dist/*"
-			unstash "build";
-			virtualenv "venv", ["dist/cinch*.whl"];
-			unstash "output";
+			// Need to be able to ignore ansible hosts
 			writeFile file: "~/ansible.cfg", text: ansible_cfg;
-			venvExec "venv", ["cinch \"inventories/${target}.inventory\""]
+			// Clean the environment. Pipeline jobs don't seem to do that
+			sh "rm -f dist/* ${WORKSPACE}/venv"
+			// Fetch the build artifacts and install them
+			unstash "build";
+			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
+			dir("topology-dir") {
+				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
+			}
+			dir("topology-dir/tests") {
+				unstash "output";
+				venvExec "${WORKSPACE}/venv", ["cinch \"inventories/${target}.inventory\""]
+			}
 		}
 	}
 }
