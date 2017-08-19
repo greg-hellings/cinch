@@ -178,7 +178,7 @@ try {
 				for(String target : cinchTargets) {
 					builds[target] = createProvision(target, "down");
 				}
-				builds[target] = createProvision("builder", "down");
+				builds["builder"] = createProvision("builder", "down");
 				parallel builds;
 			}
 		}
