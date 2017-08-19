@@ -108,6 +108,7 @@ try {
 				}
 				provisions["builder"] = createProvision("builder", "up");
 				parallel provisions
+				unstash "builder";
 				venvExec "${WORKSPACE}/linchpin",
 				         ["cinch inventories/builder.inventory",
 				          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
