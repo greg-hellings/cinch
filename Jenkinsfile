@@ -6,7 +6,8 @@
 * 3. 2x RHEL 7.4 machines for master/slave without security + SSL
 * 4. 2x RHEL 7.4 machines for master/slave with security
 * 5. 2x RHEL 7.4 machines for master/slave with security + SSL
-* 6. 2x Fedora machines for master/slave with security + SSL
+* 6. 1x RHEL 7.4 machine for master, 1x RHEL 6 machine for slave with security + SSL
+* N. 2x Fedora machines for master/slave with security + SSL
 *
 * Build RHEL-based Docker containers for internal use
 * Build out systems from provisioning step
@@ -18,7 +19,8 @@ def topologyBranch = "master";
 def cinchTargets = ["rhel7_nosec_nossl",
                     "rhel7_nosec_ssl",
                     "rhel7_sec_nossl",
-                    "rhel7_sec_ssl"];
+                    "rhel7_sec_ssl",
+                    "rhel7_sec_ssl_rhel6_slave"];
 def toxTargets = ["lint",
                   "docs",
                   "py27"];
@@ -130,7 +132,7 @@ try {
 	}
 
 
-	stage("Tier 1") {
+	stage("Tier 1 - lint, unit tests, etc") {
 		def builds = [:];
 		for( String target : toxTargets ) {
 			builds[target] = createBuild(target);
@@ -139,19 +141,10 @@ try {
 	}
 
 
-	stage("Tier 2") {
+	stage("Tier 2 - deploys") {
 		builds = [:];
 		for( String target : cinchTargets ) {
 			builds[target] = createDeploy(target, topologyBranch);
-		}
-		parallel builds;
-	}
-
-
-	stage("Build Images") {
-		builds = [:];
-		for( String image : images ) {
-			builds[image] = createBuild(image);
 		}
 		parallel builds;
 	}
