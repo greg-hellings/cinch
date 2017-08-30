@@ -16,7 +16,7 @@ def cinch_generic(playbook):
     parser.add_argument('inventory')
     # All remaining arguments are passed through, untouched, to Ansible
     parser.add_argument('args', nargs=REMAINDER)
-    args = parser.parse_args()
+    args = parser.parse_known_args()
     if len(args.inventory) > 0:
         if args.inventory[0] == '/':
             inventory = args.inventory

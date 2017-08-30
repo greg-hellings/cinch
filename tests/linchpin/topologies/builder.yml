@@ -1,0 +1,22 @@
+---
+topology_name: builder
+site: ci-osp
+resource_groups:
+  - resource_group_name: cinch
+    res_group_type: openstack
+    credentials:
+      filename: clouds.yml
+      profile: osp
+    res_defs:
+      - res_name: builder
+        flavor: c1.xlarge
+        res_type: os_server
+        image: rhel-7.4-server-x86_64-latest
+        count: 1
+        keypair: "{{ lookup('env', 'OS_KEYPAIR') }}"
+        networks:
+          - "{{ lookup('env', 'OS_NETWORK') }}"
+        fip_pool: "{{ lookup('env', 'OS_FLOATING_NETWORK') }}"
+        #userdata: |
+        #  #!/bin/bash
+        #  dnf install -y python python-dnf

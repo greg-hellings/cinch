@@ -1,0 +1,4 @@
+jslave_label: cinch-test-builder
+jenkins_master_url: http://10.8.242.151
+extra_repositories:
+  - "{{ all_repositories.extras }}"

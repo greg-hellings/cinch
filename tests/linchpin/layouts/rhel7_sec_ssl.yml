@@ -1,0 +1,22 @@
+---
+inventory_layout:
+  hosts:
+    master:
+      count: 1
+      host_groups:
+        - rhel7
+        - certificate_authority
+        - repositories
+        - jenkins_master
+        - sec
+        - ssl
+    slave:
+      count: 1
+      host_groups:
+        - rhel7
+        - certificate_authority
+        - repositories
+        - jenkins_slave
+        - sec
+        - ssl
+        - test_slave

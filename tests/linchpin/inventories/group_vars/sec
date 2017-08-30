@@ -1,0 +1,3 @@
+jenkins_security_enabled: true
+jenkins_slave_username: jenkins-admin
+jenkins_slave_password: "{{ hostvars[groups['jenkins_master'][0]]['admin_api_key'] }}"

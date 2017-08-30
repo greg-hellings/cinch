@@ -16,6 +16,7 @@
 */
 // Trying to avoid "magic strings"
 def topologyBranch = "master";
+def toxVersion = "2.7.0";
 def cinchTargets = ["rhel7_nosec_nossl",
                     "rhel7_nosec_ssl",
                     "rhel7_sec_nossl",
@@ -48,7 +49,7 @@ def createBuild(String target) {
 		node("cinch-test-builder") {
 			checkout scm
 			// Virtualenv lines temporary until Fedora builds available
-			virtualenv "tox", ["tox==2.7.0"]
+			virtualenv "tox", ["tox==${toxVersion}"]
 			venvExec "tox", ["tox -e \"${target}\""]
 		}
 	};
@@ -58,18 +59,18 @@ def createDeploy(String target, String topologyBranch) {
 	return {
 		node {
 			// Clean the environment. Pipeline jobs don't seem to do that
-			sh "rm -rf dist/* venv topology-dir";
-			dir("topology-dir") {
+			sh "rm -rf dist/* venv secrets";
+			dir("secrets") {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
 			// Create a virtualenv with the new test cinch instance in it
 			unstash "build";
 			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
 			// Test running cinch from the new install on the target machines
-			dir("topology-dir/test/") {
+			dir("secrets/tests/") {
 				unstash target;
 				venvExec "${WORKSPACE}/venv",
-				        ["cinch inventories/${target}.inventory"];
+				        ["cinch inventories/${target}.inventory -e @${WORKSPACE}/secrets/test/vars"];
 			}
 		}
 	}
@@ -87,7 +88,7 @@ try {
 	stage("Provision") {
 		node {
 			// Clean up from previous runs
-			sh "rm -rf topology-dir cinch";
+			sh "rm -rf secrets cinch";
 			// Installing from moving source target depends on the following releases
 			// linchpin needs to support openstack userdata variables (v1.1?)
 			// cinch needs to support the tox testing builds (v0.8?)
@@ -95,14 +96,14 @@ try {
 			virtualenv "${WORKSPACE}/linchpin", ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 			// This repository contains the topology files that are needed to spin up
 			// our instances with linchpin
-			dir("topology-dir") {
+			dir("secrets") {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
 			// Necessary at this step for calling Ansible to create the lint/build host
 			dir("cinch") {
 				checkout scm
 			}
-			dir('topology-dir/test/') {
+			dir('cinch/tests/') {
 				// Spin up new instances for our testing
 				def provisions = [:];
 				for( String target : cinchTargets) {
@@ -112,7 +113,7 @@ try {
 				parallel provisions
 				unstash "builder";
 				venvExec "${WORKSPACE}/linchpin",
-				         ["cinch inventories/builder.inventory",
+				         ["cinch inventories/builder.inventory -e @${WORKSPACE}/secrets/tests/vars",
 				          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
 			}
 		}
@@ -152,10 +153,7 @@ try {
 } finally {
 	stage("Tear Down") {
 		node {
-			dir("topology-dir") {
-				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
-			}
-			dir("topology-dir/test/") {
+			dir("cinch/tests/") {
 				unstash "builder";
 				// Try to stop the swarm service on the Jenkins build slave, so that it
 				// does not stay on as a stale instance for a long time in the Jenkins

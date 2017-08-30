@@ -1,0 +1,28 @@
+---
+topology_name: rhel7_sec_ssl_rhel6_slave
+site: ci-osp
+resource_groups:
+  - resource_group_name: rhel6_7
+    res_group_type: openstack
+    credentials:
+      filename: clouds.yml
+      profile: osp
+    res_defs:
+      - res_name: sec_ssl
+        flavor: m1.medium
+        res_type: os_server
+        image: rhel-7.4-server-x86_64-latest
+        count: 1
+        keypair: "{{ lookup('env', 'OS_KEYPAIR') }}"
+        networks:
+          - "{{ lookup('env', 'OS_NETWORK') }}"
+        fip_pool: "{{ lookup('env', 'OS_FLOATING_NETWORK') }}"
+      - res_name: slave
+        flavor: m1.medium
+        res_type: os_server
+        image: rhel-6.10-server-x86_64-nightly
+        count: 1
+        keypair: "{{ lookup('env', 'OS_KEYPAIR') }}"
+        networks:
+          - "{{ lookup('env', 'OS_NETWORK') }}"
+        fip_pool: "{{ lookup('env', 'OS_FLOATING_NETWORK') }}"

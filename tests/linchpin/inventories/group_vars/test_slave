@@ -1,0 +1,11 @@
+# This is a very convoluted set of variables, but it allows us to pull out the host information
+# from the dynamically provisioned host information. Since Linchpin does not allow us to give
+# a deterministic Ansible name to the system, at present
+# (https://github.com/CentOS-PaaS-SIG/linchpin/issues/332), we must first extract the host
+# from its position in the set of jenkins_master systems. Then we can extract the values from
+# that set of hostvars in order to construct the jenkins_master_url that is being spun up by
+# our system
+jenkins_master: "{{ hostvars[groups['jenkins_master'][0]] }}"
+jenkins_master_protocol: http{{ jenkins_master['https_enabled'] | ternary('s', '') }}
+jenkins_master_host: "{{ jenkins_master['ansible_host'] | default(groups['jenkins_master'][0]) }}"
+jenkins_master_url: "{{ jenkins_master_protocol }}://{{ jenkins_master_host }}"

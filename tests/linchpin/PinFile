@@ -1,0 +1,47 @@
+#The following example illustrates the PinFile
+#
+#SYNTAX:
+#
+#target:
+#    topology: <string>
+#    inventory: <string>
+
+builder:
+  topology: builder.yml
+  layout: builder.yml
+
+rhel7_nosec_nossl:
+  topology: rhel7_nosec_nossl.yml
+  layout: rhel7_nosec_nossl.yml
+
+rhel7_nosec_ssl:
+  topology: rhel7_nosec_ssl.yml
+  layout: rhel7_nosec_ssl.yml
+
+rhel7_sec_ssl:
+  topology: rhel7_sec_ssl.yml
+  layout: rhel7_sec_ssl.yml
+
+rhel7_sec_nossl:
+  topology: rhel7_sec_nossl.yml
+  layout: rhel7_sec_nossl.yml
+
+rhel7_sec_ssl_rhel6_slave:
+  topology: rhel7_sec_ssl_rhel6_slave.yml
+  layout: rhel7_sec_ssl_rhel6_slave.yml
+#
+#raw_sec:
+#  topology: two_rhel_machines.yml
+#  layout: raw_sec.yml
+
+#ssl_sec_rhel_mixed:
+#  topology: rhel7_rhel6_machines.yml
+#  layout: ssl_sec_mixed.yml
+
+#ssl_sec_rhel7:
+#  topology: two_rhel_machines.yml
+#  layout: ssl_sec.yml
+
+#ssl_sec_fedora:
+#  topology: two_fedora_machines.yml
+#  layout: ssl_sec_fedora.yml
