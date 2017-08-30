@@ -106,10 +106,10 @@ try {
 				// Spin up new instances for our testing
 				def provisions = [:];
 				for( String target : cinchTargets) {
-					provisions[target] = createProvision(target, "up");
+					provisions[target] = createProvision(target, "up")();
 				}
-				provisions["builder"] = createProvision("builder", "up");
-				parallel provisions
+				provisions["builder"] = createProvision("builder", "up")();
+				//parallel provisions
 				unstash "builder";
 				venvExec "${WORKSPACE}/linchpin",
 				         ["cinch inventories/builder.inventory",
