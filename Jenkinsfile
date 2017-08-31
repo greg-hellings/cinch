@@ -173,7 +173,7 @@ try {
 					builds[target] = createProvision(target, "down");
 				}
 				builds["builder"] = createProvision("builder", "down");
-				parallel builds;
+				//parallel builds;
 			}
 		}
 	}
