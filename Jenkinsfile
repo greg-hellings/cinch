@@ -79,7 +79,7 @@ def createProvision(String target, String direction) {
 	return {
 		venvExec "${WORKSPACE}/linchpin", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
 		                                   + direction + ' ' + target];
-		stash name: target, includes: "inventories/*.inventory,resources/*";
+		stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
 	};
 }
 
@@ -106,10 +106,10 @@ try {
 				// Spin up new instances for our testing
 				def provisions = [:];
 				for( String target : cinchTargets) {
-					provisions[target] = createProvision(target, "up")();
+					provisions[target] = createProvision(target, "up");
 				}
-				provisions["builder"] = createProvision("builder", "up")();
-				//parallel provisions
+				provisions["builder"] = createProvision("builder", "up");
+				parallel provisions
 				unstash "builder";
 				venvExec "${WORKSPACE}/linchpin",
 				         ["cinch inventories/builder.inventory",
