@@ -40,7 +40,7 @@ jenkins_uc_version: "{{ jenkins_version.rsplit('.', 1)[0] }}"
 # URL for that update center
 jenkins_plugins:
   - plugins: "{{ lookup('file', 'files/jenkins-plugin-lists/default.txt').split('\n') }}"
-    url: "{{ omit }}" # Omit in order to use default update center
+    url: "{{ omit }}"  # Omit in order to use default update center
 # Bundled plugins are ones that are included by default with Jenkins. The process
 # of pinning a bundled plugin tells Jenkins to not overwrite the correct version
 # of plugin with an included version during a Jenkins upgrade but rather use the
