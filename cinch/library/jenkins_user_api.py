@@ -34,6 +34,7 @@ def main():
             'cli_jar': {'default':
                         '/var/cache/jenkins/war/WEB-INF/jenkins-cli.jar'},
             'jenkins_url': {'default': 'http://localhost:8080'},
+            'remoting': {'required': True, 'type': 'bool'},
             'java_command': {'type': 'str', 'default': '/usr/bin/java'}
         }
     )
@@ -46,29 +47,53 @@ def main():
     groovy = NamedTemporaryFile(delete=False)
     groovy.write(MYFILE.format(args.user))
     groovy.close()
-    process = [args.java_command,
-               '-jar',
-               args.cli_jar,
-               '-s',
-               args.jenkins_url,
-               'groovy',
-               groovy.name]
+    process_named_args = [args.java_command,
+                          '-jar',
+                          args.cli_jar,
+                          '-s',
+                          args.jenkins_url]
+    # Append -remoting argument to named argument list depending on the version
+    # of Jenkins
+    if args.remoting:
+        process_named_args.append('-remoting')
+    process_positional_args = ['groovy', groovy.name]
+    process = process_named_args + process_positional_args
     # The groovy code simply prints out the value of the API key, so we want
     # to be able to capture that output
+    err, output = None, None
     p = subprocess.Popen(process,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
-    output, err = p.communicate()
-    os.unlink(groovy.name)
-    success = False
-    # It's possible the Popen process has an error code for a whole host of
-    # reasons
-    if p.returncode == 0:
-        success = True
-    module.exit_json(api_key=output.strip(),
-                     err=err,
-                     changed=False,
-                     success=success)
+    try:
+        output, err = p.communicate()
+        os.unlink(groovy.name)
+        # It's possible the Popen process has an error code for a whole host of
+        # reasons
+        if p.returncode == 0:
+            module.exit_json(api_key=output.strip(),
+                             err=err,
+                             changed=False,
+                             success=True)
+        else:
+            msg = "Error occurred while executing jenkins-cli.jar"
+    except subprocess.CalledProcessError:
+        msg = "Error received while attempting to execute Java"
+        # If err and output are some type of empty, but not the empty string,
+        # then we reached this point without any output. If they are the empty
+        # string, then we reached this point but the subprocess output nothing
+        # on the specified pipe. Providing this data, or a status message such
+        # as these defaults, provides a better way for users to diagnose the
+        # problems encountered
+        if not err and err != "":
+            err = "No stderr detected"
+        if not output and output != "":
+            output = "No stdout detected"
+    # There are lots of reasons to fall through to here. But if we have, then
+    # something has most definitely gone wrong. We should report on that
+    module.fail_json(msg=msg,
+                     stderr=err,
+                     stdout=output,
+                     api_key='')
 
 
 main()

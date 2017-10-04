@@ -21,13 +21,26 @@ https_enabled: false
 # to construct the name of the RPM below as well as update center URLS, so this
 # must include the complete "x.y.z" version, e.g. 1.651.3.
 jenkins_version: "1.651.3"
+# Temporarily remove the jenkins package from the package mananger pinning
+# configuration to allow upgrades of the jenkins package.  Note that other
+# packages blacklisted by the upgrade_blacklist variable will remain pinned via
+# the package manager configuration.
+jenkins_upgrade: false
 # Update center version based on jenkins_version, update center does not use
 # "z" bit of the version, for example 1.651.3 becomes 1.651. This split
 # incantation strips the '.z' version off of jenkins_version.
 jenkins_uc_version: "{{ jenkins_version.rsplit('.', 1)[0] }}"
 # The list of Jenkins plugins that should be installed by default from the
-# configured Update Centers.
-jenkins_plugins: "{{ lookup('file', 'files/jenkins-plugin-lists/default.txt').split('\n') }}"
+# configured Update Centers. Each element in this list takes two different values
+# in a dict. The first is "plugins", which is a list of plugin names. Each name can
+# be either just the plugin's name, or the name pinned to a version in the form of
+# a string such as "plugin-name==1.2.3". The second dict element is optional, and is
+# named "url". If you are installing plugins from an update center other than the
+# default one provided by jenkins-ci.org, then use the "url" key to specify the base
+# URL for that update center
+jenkins_plugins:
+  - plugins: "{{ lookup('file', 'files/jenkins-plugin-lists/default.txt').split('\n') }}"
+    url: "{{ omit }}" # Omit in order to use default update center
 # Bundled plugins are ones that are included by default with Jenkins. The process
 # of pinning a bundled plugin tells Jenkins to not overwrite the correct version
 # of plugin with an included version during a Jenkins upgrade but rather use the
@@ -72,6 +85,10 @@ jenkins_backup: {}
 #  cleanup_diffs: false
 #  next_build_number: false
 #  move_to_zip: false
+# The shell user on the master system whose SSH key is configured with admin access
+# on the Jenkins CLI. Also, the home directory for that user
+jenkins_cli_shell_user: "{{ jenkins_user }}"
+jenkins_cli_shell_user_home: "{{ jenkins_user_home }}"
 
 
 # ############################################################################
@@ -92,6 +109,14 @@ jenkins_admin:
   nickname: jenkins-admin
   email: root@localhost
   password: changeme
+# A list of users, groups, etc (SIDs, in Jenkins-speak) who should be added to
+# the admin role
+jenkins_admin_sids: []
+# A list of users who should be given access to the Jenkins CLI. Users must exist
+# in the Jenkins filesystem already (they must have logged into the system at
+# least once, already). They will be configured with the SSH key from the system
+# shell user named "jenkins" as their pubkey.
+jenkins_cli_users: []
 # An array of users to create in the local Jenkins database, regardless of the
 # authentication methods actually in place. Elements in this array should match
 # the form of the jenkins_admin variable immediately above this
@@ -230,3 +255,6 @@ jenkins_usebrowser: false
 # to manage production Jenkins masters and changes to the Jenkins application
 # are not desired to lessen customer impact.
 jenkins_plugin_install_configure: true
+
+# Number of times to retry getting the API key before we give up and admit defeat
+jenkins_user_api_retries: 10

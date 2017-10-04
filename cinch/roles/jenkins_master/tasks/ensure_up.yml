@@ -1,10 +1,3 @@
-- name: set listening port
-  set_fact:
-    _listening_port: "{{ https_enabled | ternary(443, 80) }}"
-  when: ansible_connection != 'docker'
-  tags:
-    - jenkins_check_mode
-
 - name: check for running in a container
   set_fact:
     _listening_port: "{{ https_enabled | ternary(8443, 8080) }}"
@@ -12,9 +5,30 @@
   tags:
     - jenkins_check_mode
 
+- name: discover valid hostname for containers
+  set_fact:
+    _jenkins_host: 'localhost'
+  when: ansible_connection == 'docker'
+  tags:
+    - jenkins_check_mode
+
+- name: discover valid hostname
+  set_fact:
+    _jenkins_host: "{{ ansible_host | default(inventory_hostname | default('localhost')) }}"
+  when: ansible_connection != 'docker'
+  tags:
+    - jenkins_check_mode
+
 - name: construct Jenkins URL
   set_fact:
-    _jenkins_url: "http{{ https_enabled | ternary('s', '') }}://localhost:{{ _listening_port }}"
+    _jenkins_url: "http{{ https_enabled | ternary('s', '') }}://{{ _jenkins_host }}"
+  tags:
+    - jenkins_check_mode
+
+- name: modify Jenkins URL for non-standard ports
+  set_fact:
+    _jenkins_url: "{{ _jenkins_url }}:{{ _listening_port }}"
+  when: _listening_port is defined
   tags:
     - jenkins_check_mode
 
@@ -32,12 +46,24 @@
     'status' in jenkins_status and
     (jenkins_status['status'] == 200 or jenkins_status['status'] == 401)
 
+# Newer Jenkins versions require the -remoting flag to allow the Jenkins CLI to
+# be available in the way that we use it currently. The 'X-Jenkins' response
+# header gives us the current version.
+# https://jenkins.io/doc/book/managing/cli/#remoting-connection-mode
+- name: check Jenkins version for -remoting flag
+  set_fact:
+    jenkins_cli_remoting: "{{ jenkins_status.x_jenkins | version_compare('2.46.2', '>=') }}"
+
 - name: get user api key
   jenkins_user_api:
     user: "{{ jenkins_admin.nickname }}"
+    remoting: "{{ jenkins_cli_remoting }}"
   register: jenkins_admin_api_key
   become: true
-  become_user: "{{ jenkins_user }}"
+  become_user: "{{ jenkins_cli_shell_user }}"
+  retries: "{{ jenkins_user_api_retries }}"
+  delay: 6
+  until: jenkins_admin_api_key.api_key != ''
 
 - name: save API key
   set_fact:

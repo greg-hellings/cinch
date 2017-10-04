@@ -1,16 +1,23 @@
+- name: unpin jenkins package for version upgrades
+  lineinfile:
+    dest: "{{ version_pin_file }}"
+    state: present
+    regexp: "^exclude=.*"
+    line: "exclude={{ upgrade_blacklist | difference(['jenkins']) | join(' ') }}"
+  when: jenkins_upgrade
+
 - name: install necessary RPM files
   package:
     name: "{{ item }}"
     state: present
   with_items:
     - "{{ jenkins_rpm }}"
-    - "{{ python_pip_package }}"
     - libvirt-devel
     - python-virtualenv
     - libyaml-devel
     - openssl-devel
     - libffi-devel
-    - ansible
+  notify: restart Jenkins during upgrade
 
 - name: install additional packages
   package:

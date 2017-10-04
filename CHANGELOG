@@ -1,16 +1,46 @@
-v 0.8.0
+v 0.8.5 (next)
+- Moved tests to tox
+- Added Jenkinsfile to expose full testing
+- Bumped Fedora builds to Fedora 26
+- Added playbook to configure a build server for tests/image builds
+- Eliminated all remaining lint warnings, made yamllint warnings errors
+
+v 0.8.4 (25 Sep 2017)
+- Bump to linchpin 1.0.4 and Ansible >= 2.3.2 because of syntax errors (GH #176)
+- Capture errors from jenkins-cli.jar more robustly (GH #151)
+- Streamline installation of the Python pip module (GH #147)
+
+v 0.8.3 (13 Sep 2017)
+- Clean up TravisCI tests
+- Clean up Docker UID variable for OpenShift support
+- Stop Jenkins process before upgrading
+- Avoid modifying Beaker during upgrades
+- Make jenkins user passwords optional, to avoid unnecessarily changing them
+  on existing systems
+
+v 0.8.2 (12 Sep 2017)
+- Added jenkins_cli_shell_user and jenkins_cli_shell_user_home, to allow better
+  configuration of where to configure Jenkins CLI users' SSH keys
+- Improved internal construction of the _jenkins_url variable to avoid possible
+  SSL hostname mismatch errors
+- Removed pre-packaged SSH key. Changed to generating when needed
+
+v 0.8.1 (11 Sep 2017)
+- Removed ansible RPM package from jenkins_master role
+
+v 0.8.0 (6 Sep 2017)
+- Added support for upgrading to Jenkins 2 from Jenkins 1
+- Added support for installing pinned plugins from multiple update centers
+- Significant improvements to Groovy script error reporting
+- Added ability to configure multiple admin users (jenkins_admin_sids), and to
+  configure users with CLI access independently of them being admins
+  (jenkins_cli_users)
 - Added significant updates to Jenkins configuration for
   Kerberos, LDAP/basic auth, backup configurations, and
   more
 - Added oneshot Jenkins backup playbook for cases where cinch will run on
   existing Jenkins masters created without cinch
 
-v 0.7.1 (next)
-- Moved tests to tox
-- Added Jenkinsfile to expose full testing
-- Bumped Fedora builds to Fedora 26
-- Added playbook to configure a build server for tests/image builds
-- Eliminated all remaining lint warnings, made yamllint warnings errors
 - Updated Jenkins repo URL
 - Added ability to exclude changes to Jenkins plugins+configuration
 - Added configurable NTP server support
