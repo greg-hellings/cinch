@@ -92,7 +92,7 @@ try {
 			// linchpin needs to support openstack userdata variables (v1.1?)
 			// cinch needs to support the tox testing builds (v0.8?)
 			// cinch needs to support discrete teardown command (v0.8?)
-			virtualenv "${WORKSPACE}/linchpin", ["linchpin==1.0.4", "jsonschema", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
+			virtualenv "${WORKSPACE}/linchpin", ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 			// This repository contains the topology files that are needed to spin up
 			// our instances with linchpin
 			dir("topology-dir") {
