@@ -32,7 +32,7 @@ def images = ["cent6_slave",
 @Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 def topologyCheckoutDir = "topology-dir";
-def topologyWorkspaceDir = "${topologyCheckoutDir}/tests";
+def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
 
 // Python virtualenv helper files
 def virtualenv(String name, List deps=[]) {
