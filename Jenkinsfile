@@ -143,8 +143,10 @@ try {
 	stage("Provision deploy tier") {
 		node("cinch-test-builder") {
 			def provisions = [:];
-			for( String target : cinchTargets )
+			for( String target : cinchTargets ) {
+				sh "Echo ${target}";
 				provisions[target] = createProvision(target, "up");
+			}
 			parallel provisions;
 		}
 	}
