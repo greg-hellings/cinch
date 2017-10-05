@@ -13,6 +13,7 @@
         - make
         - python2-pip
         - python2-wheel
+        - python2-tox
 
     - name: create docker group
       become: true
