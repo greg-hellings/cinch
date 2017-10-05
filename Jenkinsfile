@@ -144,9 +144,10 @@ try {
 		node("cinch-test-builder") {
 			def provisions = [:];
 			for( String target : cinchTargets ) {
-				sh "Echo ${target}";
+				sh "echo ${target}";
 				provisions[target] = createProvision(target, "up");
 			}
+			sh "echo ${provisions}";
 			parallel provisions;
 		}
 	}
