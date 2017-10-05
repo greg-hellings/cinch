@@ -135,7 +135,9 @@ try {
 		for( String target : toxTargets ) {
 			builds[target] = createBuild(target);
 		}
-		parallel builds;
+		node("cinch-test-builder") {
+			parallel builds;
+		}
 	}
 
 
@@ -157,15 +159,17 @@ try {
 		// deploy. The third time we will execute the third provision, the second
 		// deploy, and the first teardown. This will continue through until every
 		// set of provision/deploy/teardown has been completed.
-		for(int i = 0; i < cinchTargets.size() + 2; ++i) {
+		for(int i = 0; i < cinchTargets.length + 2; ++i) {
 			def steps = [:];
-			if( i < cinchTargets.size() )
+			if( i < cinchTargets.length )
 				steps["provisoin"] = provisions[cinchTargets[i]];
-			if( i-1 < cinchTargets.size() && i-1 >= 0 )
+			if( i-1 < cinchTargets.length && i-1 >= 0 )
 				steps["deploy"] = builds[cinchTargets[i+1]];
-			if( i-2 < cinchTargets.size() && i-2 >= 0)
+			if( i-2 < cinchTargets.length && i-2 >= 0)
 				steps["teardown"] = builds[cinchTargets[i+2]];
-			parallel steps;
+			node {
+				parallel steps;
+			}
 		}
 	}
 
