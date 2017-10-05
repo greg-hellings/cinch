@@ -1,4 +1,5 @@
 #!groovy
+import groovy.transform.Field;
 /**
 * Spin up resources
 * 1. Fedora machine for tox and shell check and docker images
@@ -28,7 +29,7 @@ def images = ["cent6_slave",
               "cent7_slave",
               "fedora_slave",
               "cent7_master"];
-def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+@Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 
 // Python virtualenv helper files
@@ -141,12 +142,11 @@ try {
 
 
 	stage("Provision deploy tier") {
+		def provisions = [:];
+		for( String target : cinchTargets ) {
+			provisions[target] = createProvision(target, "up");
+		}
 		node("cinch-test-builder") {
-			def provisions = [:];
-			for( String target : cinchTargets ) {
-				sh "echo ${target}";
-				provisions[target] = createProvision(target, "up");
-			}
 			sh "echo ${provisions}";
 			parallel provisions;
 		}
