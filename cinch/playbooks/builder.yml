@@ -16,6 +16,7 @@
         - tox
         - libffi-devel
         - openssl-devel
+        - libeselinux-python
 
     - name: create docker group
       become: true

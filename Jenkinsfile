@@ -72,10 +72,6 @@ def createDeploy(String target) {
 // Execute a parallel provision step
 def createProvision(String target, String direction) {
 	return {
-		dir(topologyCheckoutDir) {
-			git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
-		}
-		virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
 		dir(topologyWorkspaceDir) {
 			venvExec "${WORKSPACE}/linchpin-venv", ["ansible-playbook --version",
 			        'WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
@@ -149,14 +145,9 @@ try {
 			deploys[target] = createProvision(target, "up");
 		}
 		node("cinch-test-builder") {
-			// Clean the environment. Pipeline jobs don't seem to do that
-			sh "rm -rf dist/* venv ${topologyCheckoutDir}";
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
-			// Create a virtualenv with the new test cinch instance in it
-			unstash "build";
-			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
 			parallel deploys;
 		}
 	}
@@ -169,6 +160,14 @@ try {
 			builds[target] = createDeploy(target);
 		}
 		node("cinch-test-builder") {
+			// Clean the environment. Pipeline jobs don't seem to do that
+			sh "rm -rf dist/* venv ${topologyCheckoutDir}";
+			dir(topologyCheckoutDir) {
+				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
+			}
+			// Create a virtualenv with the new test cinch instance in it
+			unstash "build";
+			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
 			parallel steps;
 		}
 	}
