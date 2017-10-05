@@ -3,7 +3,7 @@
   command: systemctl daemon-reload
   when: ansible_service_mgr == 'systemd'
   tags:
-    - skip-ansible-lint
+    - skip_ansible_lint
 
 - name: restart nginx service
   service:
