@@ -31,6 +31,8 @@ def images = ["cent6_slave",
               "cent7_master"];
 @Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
+def topologyCheckoutDir = "topology-dir";
+def topologyWorkspaceDir = "${topologyCheckoutDir}/tests";
 
 // Python virtualenv helper files
 def virtualenv(String name, List deps=[]) {
@@ -58,15 +60,15 @@ def createBuild(String target) {
 def createDeploy(String target, String topologyBranch) {
 	return {
 		// Clean the environment. Pipeline jobs don't seem to do that
-		sh "rm -rf dist/* venv topology-dir";
-		dir("topology-dir") {
+		sh "rm -rf dist/* venv ${topologyCheckoutDir}";
+		dir(topologyCheckoutDir) {
 			git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 		}
 		// Create a virtualenv with the new test cinch instance in it
 		unstash "build";
 		virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
 		// Test running cinch from the new install on the target machines
-		dir("topology-dir/test/") {
+		dir(topologyWorkspaceDir) {
 			unstash target;
 			venvExec "${WORKSPACE}/venv",
 					["cinch inventories/${target}.inventory"];
@@ -76,10 +78,15 @@ def createDeploy(String target, String topologyBranch) {
 // Execute a parallel provision step
 def createProvision(String target, String direction) {
 	return {
+		dir(topologyCheckoutDir) {
+			git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
+		}
 		virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
-		venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
-		                                   + direction + ' ' + target];
-		stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
+		dir(topologyWorkspaceDir) {
+			venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
+											   + direction + ' ' + target];
+			stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
+		}
 	};
 }
 
@@ -87,7 +94,7 @@ try {
 	stage("Provision Builder") {
 		node {
 			// Clean up from previous runs
-			sh "rm -rf topology-dir cinch";
+			sh "rm -rf ${topologyCheckoutDir} cinch";
 			// Installing from moving source target depends on the following releases
 			// linchpin needs to support openstack userdata variables (v1.1?)
 			// cinch needs to support the tox testing builds (v0.8?)
@@ -96,14 +103,14 @@ try {
 			virtualenv "${WORKSPACE}/cinch-venv", cinchPackages;
 			// This repository contains the topology files that are needed to spin up
 			// our instances with linchpin
-			dir("topology-dir") {
+			dir(topologyCheckoutDir) {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
 			// Necessary at this step for calling Ansible to create the lint/build host
 			dir("cinch") {
 				checkout scm
 			}
-			dir('topology-dir/test/') {
+			dir(topologyWorkspaceDir) {
 				// Spin up new instances for our testing
 				venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v up builder'];
 				stash name: "builder", includes: "inventories/builder.inventory,resources/builder*";
@@ -167,10 +174,10 @@ try {
 } finally {
 	stage("Tear Down") {
 		node {
-			dir("topology-dir") {
+			dir(topologyCheckoutDir) {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
-			dir("topology-dir/test/") {
+			dir(topologyWorkspaceDir) {
 				unstash "builder";
 				// Try to stop the swarm service on the Jenkins build slave, so that it
 				// does not stay on as a stale instance for a long time in the Jenkins
