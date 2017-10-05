@@ -56,21 +56,19 @@ def createBuild(String target) {
 // Generate parallel deploy stages for Tier 2
 def createDeploy(String target, String topologyBranch) {
 	return {
-		node {
-			// Clean the environment. Pipeline jobs don't seem to do that
-			sh "rm -rf dist/* venv topology-dir";
-			dir("topology-dir") {
-				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
-			}
-			// Create a virtualenv with the new test cinch instance in it
-			unstash "build";
-			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
-			// Test running cinch from the new install on the target machines
-			dir("topology-dir/test/") {
-				unstash target;
-				venvExec "${WORKSPACE}/venv",
-				        ["cinch inventories/${target}.inventory"];
-			}
+		// Clean the environment. Pipeline jobs don't seem to do that
+		sh "rm -rf dist/* venv topology-dir";
+		dir("topology-dir") {
+			git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
+		}
+		// Create a virtualenv with the new test cinch instance in it
+		unstash "build";
+		virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
+		// Test running cinch from the new install on the target machines
+		dir("topology-dir/test/") {
+			unstash target;
+			venvExec "${WORKSPACE}/venv",
+					["cinch inventories/${target}.inventory"];
 		}
 	}
 }
