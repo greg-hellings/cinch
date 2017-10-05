@@ -104,7 +104,7 @@ try {
 			}
 			dir('topology-dir/test/') {
 				// Spin up new instances for our testing
-				venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd}" linchpin --creds-path credentials -v up builder'];
+				venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v up builder'];
 				stash name: "builder", includes: "inventories/builder.inventory,resources/builder*";
 				venvExec "${WORKSPACE}/cinch-venv",
 				         ["cinch inventories/builder.inventory",
