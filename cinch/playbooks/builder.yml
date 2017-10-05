@@ -1,6 +1,7 @@
 - hosts: builder
   tasks:
     - name: install dependencies
+      become: true
       package:
         name: "{{ item }}"
         state: present
@@ -19,11 +20,13 @@
         - python3-pip
 
     - name: create docker group
+      become: true
       group:
         name: docker
         state: present
 
     - name: add Jenkins user to docker group
+      become: true
       user:
         name: jenkins
         groups: docker
@@ -32,12 +35,14 @@
       register: group_added
 
     - name: start Docker service
+      become: true
       service:
         name: docker
         state: started
         enabled: true
 
     - name: restart swarm to pick up new jenkins group
+      become: true
       service:
         name: swarm
         state: restarted
