@@ -104,8 +104,7 @@ try {
 			}
 			dir('topology-dir/test/') {
 				// Spin up new instances for our testing
-				def provisions = [:];
-				provisions["builder"] = createProvision("builder", "up")();
+				createProvision("builder", "up")();
 				unstash "builder";
 				venvExec "${WORKSPACE}/cinch-venv",
 				         ["cinch inventories/builder.inventory",
