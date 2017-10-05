@@ -15,6 +15,7 @@
         - python2-wheel
         - tox
         - libffi-devel
+        - openssl-devel
 
     - name: create docker group
       become: true
