@@ -29,7 +29,7 @@ setup(
     packages=find_packages(exclude=('library', 'bin')),
     include_package_data=True,
     install_requires=[
-        'ansible>=2.3.2,!2.4.0',
+        'ansible>=2.3.2,!=2.4.0',
         'plumbum>=1.6.0',
         'linchpin>=1.0.4'
     ],
