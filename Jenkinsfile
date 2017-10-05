@@ -1,4 +1,6 @@
 #!groovy
+// Things annotated with this are accessible from within methods as well as in
+// the global script
 import groovy.transform.Field;
 /**
 * Spin up resources
@@ -31,8 +33,8 @@ def images = ["cent6_slave",
               "cent7_master"];
 @Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
-def topologyCheckoutDir = "topology-dir";
-def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
+@Field def topologyCheckoutDir = "topology-dir";
+@Field def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
 
 // Python virtualenv helper files
 def virtualenv(String name, List deps=[]) {
