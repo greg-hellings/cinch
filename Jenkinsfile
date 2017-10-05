@@ -141,10 +141,10 @@ try {
 
 
 	stage("Provision deploy tier") {
-		def provisions = [:];
-		for( String target : cinchTargets )
-			provisions[target] = createProvision(target, "up");
 		node("cinch-test-builder") {
+			def provisions = [:];
+			for( String target : cinchTargets )
+				provisions[target] = createProvision(target, "up");
 			parallel provisions;
 		}
 	}
