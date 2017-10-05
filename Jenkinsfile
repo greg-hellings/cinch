@@ -77,8 +77,9 @@ def createProvision(String target, String direction) {
 		}
 		virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
 		dir(topologyWorkspaceDir) {
-			venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
-											   + direction + ' ' + target];
+			venvExec "${WORKSPACE}/linchpin-venv", ["ansible-playbook --version",
+			        'WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
+			            + direction + ' ' + target];
 			stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
 		}
 	};
@@ -143,9 +144,9 @@ try {
 
 
 	stage("Provision deploy tier") {
-		def provisions = [:];
+		def deploys = [:];
 		for( String target : cinchTargets ) {
-			provisions[target] = createProvision(target, "up");
+			deploys[target] = createProvision(target, "up");
 		}
 		node("cinch-test-builder") {
 			// Clean the environment. Pipeline jobs don't seem to do that
@@ -156,7 +157,7 @@ try {
 			// Create a virtualenv with the new test cinch instance in it
 			unstash "build";
 			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
-			parallel provisions;
+			parallel deploys;
 		}
 	}
 
