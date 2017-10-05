@@ -82,7 +82,7 @@ def createProvision(String target, String direction) {
 }
 
 try {
-	stage("Provision") {
+	stage("Provision Builder") {
 		node {
 			// Clean up from previous runs
 			sh "rm -rf topology-dir cinch";
@@ -115,7 +115,7 @@ try {
 	}
 
 
-	stage("Build artifact") {
+	stage("Tier 0 - Build artifact") {
 		node("cinch-test-builder") {
 			// Clean from previous runs
 			sh "rm -rf cinch";
@@ -139,36 +139,24 @@ try {
 	}
 
 
-	stage("Tier 2 - deploys") {
-		node {
-			// First, we create a list of all the provision and all the deploy (test)
-			// steps that we must tackle
-			def provisions = [:];
-			def builds = [:];
-			def teardown = [:];
-			for( String target : cinchTargets) {
-				provisions[target] = createProvision(target, "up");
-				builds[target] = createDeploy(target, topologyBranch);
-				teardown[target] = createProvision(target, "down");
-			}
-			// In order to minimize our concurrent usage of any quotas or limits on
-			// the test system, we run a maximum of one provision and one deployment
-			// at a time. We also teardown the resources from the previous step as
-			// we go. So the first iteration we will execute the first provision
-			// step. The next time we will execute the second provision and the first
-			// deploy. The third time we will execute the third provision, the second
-			// deploy, and the first teardown. This will continue through until every
-			// set of provision/deploy/teardown has been completed.
-			for(int i = 0; i < cinchTargets.length + 2; ++i) {
-				def steps = [:];
-				if( i < cinchTargets.length )
-					steps["provision"] = provisions[cinchTargets[i]];
-				if( i-1 < cinchTargets.length && i-1 >= 0 )
-					steps["deploy"] = builds[cinchTargets[i+1]];
-				if( i-2 < cinchTargets.length && i-2 >= 0)
-					steps["teardown"] = teardown[cinchTargets[i+2]];
-				parallel steps;
-			}
+	stage("Provision deploy tier") {
+		def provisions = [:];
+		for( String target : cinchTargets )
+			provisions[target] = createProvision(target, "up");
+		node("cinch-test-builder") {
+			parallel provisions;
+		}
+	}
+
+	stage("Tier 2 - Deploys") {
+		// First, we create a list of all the provision and all the deploy (test)
+		// steps that we must tackle
+		def builds = [:];
+		for( String target : cinchTargets) {
+			builds[target] = createDeploy(target, topologyBranch);
+		}
+		node("cinch-test-builder") {
+			parallel steps;
 		}
 	}
 
