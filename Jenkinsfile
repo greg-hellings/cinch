@@ -28,6 +28,8 @@ def images = ["cent6_slave",
               "cent7_slave",
               "fedora_slave",
               "cent7_master"];
+def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 
 // Python virtualenv helper files
 def virtualenv(String name, List deps=[]) {
@@ -47,9 +49,7 @@ def createBuild(String target) {
 	return {
 		node("cinch-test-builder") {
 			checkout scm
-			// Virtualenv lines temporary until Fedora builds available
-			virtualenv "tox", ["tox==2.7.0"]
-			venvExec "tox", ["tox -e \"${target}\""]
+			sh "tox -e \"${target}\""
 		}
 	};
 }
@@ -75,7 +75,8 @@ def createDeploy(String target, String topologyBranch) {
 // Execute a parallel provision step
 def createProvision(String target, String direction) {
 	return {
-		venvExec "${WORKSPACE}/linchpin", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
+		virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
+		venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
 		                                   + direction + ' ' + target];
 		stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
 	};
@@ -90,7 +91,8 @@ try {
 			// linchpin needs to support openstack userdata variables (v1.1?)
 			// cinch needs to support the tox testing builds (v0.8?)
 			// cinch needs to support discrete teardown command (v0.8?)
-			virtualenv "${WORKSPACE}/linchpin", ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz", "https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
+			virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
+			virtualenv "${WORKSPACE}/cinch-venv", cinchPackages;
 			// This repository contains the topology files that are needed to spin up
 			// our instances with linchpin
 			dir("topology-dir") {
@@ -105,7 +107,7 @@ try {
 				def provisions = [:];
 				provisions["builder"] = createProvision("builder", "up")();
 				unstash "builder";
-				venvExec "${WORKSPACE}/linchpin",
+				venvExec "${WORKSPACE}/cinch-venv",
 				         ["cinch inventories/builder.inventory",
 				          // This will actually test the pending builder.yml playbook, not the one installed
 				          // from pip, so we make sure the current code is able to test itself
@@ -174,7 +176,7 @@ try {
 				// maybe this finally block here happened before the slave connected. We
 				// still need to try and de-provision the dynamic hosts
 				try {
-					venvExec "${WORKSPACE}/linchpin",
+					venvExec "${WORKSPACE}/linchpin-venv",
 						["teardown inventories/builder.inventory || echo 'Teardown failed'"];
 				} finally {
 					// nop
