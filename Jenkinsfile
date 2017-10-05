@@ -140,32 +140,33 @@ try {
 
 
 	stage("Tier 2 - deploys") {
-		// First, we create a list of all the provision and all the deploy (test)
-		// steps that we must tackle
-		provisions = [:];
-		builds = [:];
-		for( String target : cinchTargets) {
-			provisions[target] = createProvision(target, "up");
-			builds[target] = createDeploy(target, topologyBranch);
-			teardown[target] = createProvision(target, "down");
-		}
-		// In order to minimize our concurrent usage of any quotas or limits on
-		// the test system, we run a maximum of one provision and one deployment
-		// at a time. We also teardown the resources from the previous step as
-		// we go. So the first iteration we will execute the first provision
-		// step. The next time we will execute the second provision and the first
-		// deploy. The third time we will execute the third provision, the second
-		// deploy, and the first teardown. This will continue through until every
-		// set of provision/deploy/teardown has been completed.
-		for(int i = 0; i < cinchTargets.length + 2; ++i) {
-			def steps = [:];
-			if( i < cinchTargets.length )
-				steps["provisoin"] = provisions[cinchTargets[i]];
-			if( i-1 < cinchTargets.length && i-1 >= 0 )
-				steps["deploy"] = builds[cinchTargets[i+1]];
-			if( i-2 < cinchTargets.length && i-2 >= 0)
-				steps["teardown"] = builds[cinchTargets[i+2]];
-			node {
+		node {
+			// First, we create a list of all the provision and all the deploy (test)
+			// steps that we must tackle
+			def provisions = [:];
+			def builds = [:];
+			def teardown = [:];
+			for( String target : cinchTargets) {
+				provisions[target] = createProvision(target, "up");
+				builds[target] = createDeploy(target, topologyBranch);
+				teardown[target] = createProvision(target, "down");
+			}
+			// In order to minimize our concurrent usage of any quotas or limits on
+			// the test system, we run a maximum of one provision and one deployment
+			// at a time. We also teardown the resources from the previous step as
+			// we go. So the first iteration we will execute the first provision
+			// step. The next time we will execute the second provision and the first
+			// deploy. The third time we will execute the third provision, the second
+			// deploy, and the first teardown. This will continue through until every
+			// set of provision/deploy/teardown has been completed.
+			for(int i = 0; i < cinchTargets.length + 2; ++i) {
+				def steps = [:];
+				if( i < cinchTargets.length )
+					steps["provision"] = provisions[cinchTargets[i]];
+				if( i-1 < cinchTargets.length && i-1 >= 0 )
+					steps["deploy"] = builds[cinchTargets[i+1]];
+				if( i-2 < cinchTargets.length && i-2 >= 0)
+					steps["teardown"] = teardown[cinchTargets[i+2]];
 				parallel steps;
 			}
 		}
