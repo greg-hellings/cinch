@@ -104,8 +104,8 @@ try {
 			}
 			dir('topology-dir/test/') {
 				// Spin up new instances for our testing
-				createProvision("builder", "up")();
-				unstash "builder";
+				venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd}" linchpin --creds-path credentials -v up builder"];
+				stash name: "builder", includes: "inventories/builder.inventory,resources/builder*";
 				venvExec "${WORKSPACE}/cinch-venv",
 				         ["cinch inventories/builder.inventory",
 				          // This will actually test the pending builder.yml playbook, not the one installed
