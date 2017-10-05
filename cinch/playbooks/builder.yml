@@ -7,17 +7,12 @@
         state: present
       with_items:
         - docker
-        - python3-tox
         - python2-virtualenv
-        - python3-virtualenv
         - ShellCheck
         - python2-devel
         - make
-        - python3
-        - python3-devel
-        - python3-wheel
         - python2-pip
-        - python3-pip
+        - python2-wheel
 
     - name: create docker group
       become: true

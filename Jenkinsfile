@@ -109,6 +109,8 @@ try {
 				unstash "builder";
 				venvExec "${WORKSPACE}/linchpin",
 				         ["cinch inventories/builder.inventory",
+				          // This will actually test the pending builder.yml playbook, not the one installed
+				          // from pip, so we make sure the current code is able to test itself
 				          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
 			}
 		}
