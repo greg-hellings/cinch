@@ -18,7 +18,7 @@ import groovy.transform.Field;
 * Teardown resources
 */
 // Trying to avoid "magic strings"
-def topologyBranch = "master";
+@Field def topologyBranch = "master";
 def cinchTargets = ["rhel7_nosec_nossl",
                     "rhel7_nosec_ssl",
                     "rhel7_sec_nossl",
@@ -59,7 +59,7 @@ def createBuild(String target) {
 	};
 }
 // Generate parallel deploy stages for Tier 2
-def createDeploy(String target, String topologyBranch) {
+def createDeploy(String target) {
 	return {
 		// Clean the environment. Pipeline jobs don't seem to do that
 		sh "rm -rf dist/* venv ${topologyCheckoutDir}";
@@ -166,7 +166,7 @@ try {
 		// steps that we must tackle
 		def builds = [:];
 		for( String target : cinchTargets) {
-			builds[target] = createDeploy(target, topologyBranch);
+			builds[target] = createDeploy(target);
 		}
 		node("cinch-test-builder") {
 			parallel steps;
