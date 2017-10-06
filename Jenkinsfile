@@ -52,7 +52,6 @@ def venvExec(String ctx, List<String> cmds) {
 // Generate parallel build stages for Tier 1
 def createBuild(String target) {
 	return {
-		checkout scm
 		sh "tox -e \"${target}\""
 	};
 }
@@ -132,6 +131,7 @@ try {
 			builds[target] = createBuild(target);
 		}
 		node("cinch-test-builder") {
+			checkout scm
 			parallel builds;
 		}
 	}
