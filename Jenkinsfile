@@ -181,17 +181,19 @@ try {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
 			dir(topologyWorkspaceDir) {
-				unstash "builder";
+				try {
+					unstash "builder";
+				} finally { /* nop */ }
 				try {
 					venvExec "${WORKSPACE}/linchpin-venv",
 						["teardown inventories/builder.inventory || echo 'Teardown failed'"];
-				} finally {
-					// nop
-				}
+				} finally { /* nop */ }
 				def builds = [:];
 				for(String target : cinchTargets) {
 					builds[target] = createProvision(target, "down");
-					unstash target;
+					try {
+						unstash target;
+					} finally { /* nop */ }
 				}
 				builds["builder"] = createProvision("builder", "down");
 			}
