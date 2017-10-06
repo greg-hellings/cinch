@@ -180,22 +180,22 @@ try {
 			dir(topologyCheckoutDir) {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
+			// Teardown in the same order as spin up
 			dir(topologyWorkspaceDir) {
-				try {
-					unstash "builder";
-				} finally { /* nop */ }
+				unstash "builder";
 				try {
 					venvExec "${WORKSPACE}/linchpin-venv",
 						["teardown inventories/builder.inventory || echo 'Teardown failed'"];
 				} finally { /* nop */ }
+			}
+			// Perform immediately, to be sure everything works
+			createProvision("builder", "down")();
+			dir(topologyWorkspaceDir) {
 				def builds = [:];
 				for(String target : cinchTargets) {
 					builds[target] = createProvision(target, "down");
-					try {
-						unstash target;
-					} finally { /* nop */ }
+					unstash target;
 				}
-				builds["builder"] = createProvision("builder", "down");
 			}
 			parallel builds;
 		}
