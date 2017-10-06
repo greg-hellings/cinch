@@ -53,7 +53,9 @@ def venvExec(String ctx, List<String> cmds) {
 def createBuild(String target) {
 	return {
 		node("cinch-test-builder") {
-			checkout scm
+			dir("cinch") {
+				checkout scm
+			}
 			sh "tox -e \"${target}\""
 		}
 	};
