@@ -31,6 +31,7 @@ def images = ["cent6_slave",
               "cent7_slave",
               "fedora_slave",
               "cent7_master"];
+@Field def successfulProvisions = [];
 @Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 @Field def topologyCheckoutDir = "topology-dir";
@@ -87,8 +88,10 @@ def createProvision(String target,
 				venvExec "${WORKSPACE}/linchpin-venv", ["ansible-playbook --version",
 						'WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
 							+ direction + ' ' + target];
-				if (doStash)
+				if (doStash) {
 					stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
+					successfulProvisions << target;
+				}
 			}
 		}
 	};
@@ -118,6 +121,7 @@ try {
 				// Spin up new instances for our testing
 				venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v up builder'];
 				stash name: "builder", includes: "inventories/builder.inventory,resources/builder*";
+				successfulProvisions << "builder";
 				venvExec "${WORKSPACE}/cinch-venv",
 				         ["cinch inventories/builder.inventory",
 				          // This will actually test the pending builder.yml playbook, not the one installed
@@ -181,27 +185,28 @@ try {
 } finally {
 	stage("Tear Down") {
 		node {
+			// Checkout our topologies and credentials, just to be sure
 			dir(topologyCheckoutDir) {
 				git url:"${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
-			// Teardown in the same order as spin up
-			dir(topologyWorkspaceDir) {
-				unstash "builder";
-				try {
-					venvExec "${WORKSPACE}/linchpin-venv",
-						["teardown inventories/builder.inventory || echo 'Teardown failed'"];
-				} finally { /* nop */ }
-			}
-			// Perform immediately, to be sure everything works
-			createProvision("builder", "down", "master", false)();
-			def builds = [:];
-			dir(topologyWorkspaceDir) {
-				for(String target : cinchTargets) {
-					builds[target] = createProvision(target, "down", "master", false);
+			// Create a teardown step for each target that was successfully
+			// provisioned, and unstash the resulting build files
+			def teardowns = [:];
+			for (String target : successfulProvisions) {
+				teardowns[target] = createProvision(target, "down", "master", false);
+				dir(topologyWorkspaceDir) {
 					unstash target;
 				}
 			}
-			parallel builds;
+			// Attempt to shut down the Swarm process on the builder, if one
+			// was created
+			dir(topologyWorkspaceDir) {
+				if(fileExists("inventories/builder.inventory"))
+					venvExec "${WORKSPACE}/linchpin-venv",
+						["teardown inventories/builder.inventory || echo 'Teardown failed'"];
+			}
+			// Perform actual teardown steps in parallel
+			parallel teardowns;
 		}
 	}
 }
