@@ -73,9 +73,9 @@ def createDeploy(String target) {
 	}
 }
 // Execute a parallel provision step
-def createProvision(String target, String direction) {
+def createProvision(String target, String direction, String nodeName="cinch-test-builder") {
 	return {
-		node("cinch-test-builder") {
+		node(nodeName) {
 			virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
@@ -157,9 +157,9 @@ try {
 	stage("Tier 2 - Deploys") {
 		// First, we create a list of all the provision and all the deploy (test)
 		// steps that we must tackle
-		def builds = [:];
+		def deploys = [:];
 		for( String target : cinchTargets) {
-			builds[target] = createDeploy(target);
+			deploys[target] = createDeploy(target);
 		}
 		node("cinch-test-builder") {
 			// Clean the environment. Pipeline jobs don't seem to do that
@@ -170,7 +170,7 @@ try {
 			// Create a virtualenv with the new test cinch instance in it
 			unstash "build";
 			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
-			parallel steps;
+			parallel deploys;
 		}
 	}
 
@@ -189,11 +189,11 @@ try {
 				} finally { /* nop */ }
 			}
 			// Perform immediately, to be sure everything works
-			createProvision("builder", "down")();
+			createProvision("builder", "down", "master")();
 			dir(topologyWorkspaceDir) {
 				def builds = [:];
 				for(String target : cinchTargets) {
-					builds[target] = createProvision(target, "down");
+					builds[target] = createProvision(target, "down", "master");
 					unstash target;
 				}
 			}
