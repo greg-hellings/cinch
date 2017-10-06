@@ -52,10 +52,8 @@ def venvExec(String ctx, List<String> cmds) {
 // Generate parallel build stages for Tier 1
 def createBuild(String target) {
 	return {
-		node("cinch-test-builder") {
-			checkout scm
-			sh "tox -e \"${target}\""
-		}
+		checkout scm
+		sh "tox -e \"${target}\""
 	};
 }
 // Generate parallel deploy stages for Tier 2
@@ -148,6 +146,7 @@ try {
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
+			virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
 			parallel deploys;
 		}
 	}
