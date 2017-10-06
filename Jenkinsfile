@@ -74,11 +74,17 @@ def createDeploy(String target) {
 // Execute a parallel provision step
 def createProvision(String target, String direction) {
 	return {
-		dir(topologyWorkspaceDir) {
-			venvExec "${WORKSPACE}/linchpin-venv", ["ansible-playbook --version",
-			        'WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
-			            + direction + ' ' + target];
-			stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
+		node("cinch-test-builder") {
+			virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
+			dir(topologyCheckoutDir) {
+				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
+			}
+			dir(topologyWorkspaceDir) {
+				venvExec "${WORKSPACE}/linchpin-venv", ["ansible-playbook --version",
+						'WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
+							+ direction + ' ' + target];
+				stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
+			}
 		}
 	};
 }
@@ -144,13 +150,7 @@ try {
 		for( String target : cinchTargets ) {
 			deploys[target] = createProvision(target, "up");
 		}
-		node("cinch-test-builder") {
-			dir(topologyCheckoutDir) {
-				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
-			}
-			virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
-			parallel deploys;
-		}
+		parallel deploys;
 	}
 
 	stage("Tier 2 - Deploys") {
@@ -181,24 +181,20 @@ try {
 			}
 			dir(topologyWorkspaceDir) {
 				unstash "builder";
-				// Try to stop the swarm service on the Jenkins build slave, so that it
-				// does not stay on as a stale instance for a long time in the Jenkins
-				// master. But, don't actually bother with anything if it fails, because
-				// maybe this finally block here happened before the slave connected. We
-				// still need to try and de-provision the dynamic hosts
 				try {
 					venvExec "${WORKSPACE}/linchpin-venv",
 						["teardown inventories/builder.inventory || echo 'Teardown failed'"];
 				} finally {
 					// nop
 				}
-				builds = [:];
+				def builds = [:];
 				for(String target : cinchTargets) {
 					builds[target] = createProvision(target, "down");
+					unstash target;
 				}
 				builds["builder"] = createProvision("builder", "down");
-				parallel builds;
 			}
+			parallel builds;
 		}
 	}
 }
