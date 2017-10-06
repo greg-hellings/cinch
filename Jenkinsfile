@@ -73,7 +73,10 @@ def createDeploy(String target) {
 	}
 }
 // Execute a parallel provision step
-def createProvision(String target, String direction, String nodeName="cinch-test-builder") {
+def createProvision(String target,
+                    String direction,
+                    String nodeName="cinch-test-builder",
+                    boolean doStash=true) {
 	return {
 		node(nodeName) {
 			virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
@@ -84,7 +87,8 @@ def createProvision(String target, String direction, String nodeName="cinch-test
 				venvExec "${WORKSPACE}/linchpin-venv", ["ansible-playbook --version",
 						'WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
 							+ direction + ' ' + target];
-				stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
+				if (doStash)
+					stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
 			}
 		}
 	};
@@ -189,11 +193,11 @@ try {
 				} finally { /* nop */ }
 			}
 			// Perform immediately, to be sure everything works
-			createProvision("builder", "down", "master")();
+			createProvision("builder", "down", "master", false)();
 			dir(topologyWorkspaceDir) {
 				def builds = [:];
 				for(String target : cinchTargets) {
-					builds[target] = createProvision(target, "down", "master");
+					builds[target] = createProvision(target, "down", "master", false);
 					unstash target;
 				}
 			}
