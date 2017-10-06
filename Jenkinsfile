@@ -42,7 +42,7 @@ def virtualenv(String name, List deps=[]) {
 	      . "${name}/bin/activate"
 	      if [ ! -d "${name}/bin/pip" ]; then curl https://bootstrap.pypa.io/get-pip.py | python; fi
 	      ln -sf /usr/lib64/python2.7/site-packages/selinux "${name}/lib/python2.7/site-packages"
-	      ln -s /usr/lib64/python2.7/site-packages/_selinux.so "${name}/lib64/python2.7/site-packages/"
+	      ln -sf /usr/lib64/python2.7/site-packages/_selinux.so "${name}/lib64/python2.7/site-packages/"
 	      pip install ${deps.join(' ')}"""
 }
 def venvExec(String ctx, List<String> cmds) {
