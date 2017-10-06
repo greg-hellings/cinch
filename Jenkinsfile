@@ -54,9 +54,9 @@ def createBuild(String target) {
 	return {
 		node("cinch-test-builder") {
 			dir("cinch") {
-				checkout scm
+				checkout scm;
+				sh "tox -e \"${target}\"";
 			}
-			sh "tox -e \"${target}\""
 		}
 	};
 }
