@@ -194,8 +194,8 @@ try {
 			}
 			// Perform immediately, to be sure everything works
 			createProvision("builder", "down", "master", false)();
+			def builds = [:];
 			dir(topologyWorkspaceDir) {
-				def builds = [:];
 				for(String target : cinchTargets) {
 					builds[target] = createProvision(target, "down", "master", false);
 					unstash target;
