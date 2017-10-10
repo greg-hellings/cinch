@@ -1,9 +1,11 @@
-v 0.8.5 (next)
+v 0.9.0 (next)
 - Moved tests to tox
 - Added Jenkinsfile to expose full testing
 - Bumped Fedora builds to Fedora 26
 - Added playbook to configure a build server for tests/image builds
 - Eliminated all remaining lint warnings, made yamllint warnings errors
+- Broke out separate teardown command
+- Removed dev/test subpackages into tox environments instead of setup.py
 
 v 0.8.4 (25 Sep 2017)
 - Bump to linchpin 1.0.4 and Ansible >= 2.3.2 because of syntax errors (GH #176)
