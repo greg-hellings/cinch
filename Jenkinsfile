@@ -17,8 +17,10 @@ import groovy.transform.Field;
 *
 * Teardown resources
 */
+// Load helper scripts
+this.class.classLoader.parseScript(new File("tests/jenkins/Virtualenv.groovy"));
+
 // Trying to avoid "magic strings"
-@Field def topologyBranch = "master";
 def cinchTargets = ["rhel7_nosec_nossl",
                     "rhel7_nosec_ssl",
                     "rhel7_sec_nossl",
@@ -32,24 +34,17 @@ def images = ["cent6_slave",
               "fedora_slave",
               "cent7_master"];
 @Field def successfulProvisions = [];
-@Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+
+def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+def linchpinPath = "${WORKSPACE}/linchpin-venv";
+@Field Virtualenv linchpin = new Virtualenv(linchpinPath, linchpinPackages);
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
+def cinchPath = "${WORKSPACE}/cinch-venv";
+@Field Virtualenv cinch = new Virtualenv(cinchPath, cinchPackages);
+
 @Field def topologyCheckoutDir = "topology-dir";
 @Field def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
-
-// Python virtualenv helper files
-def virtualenv(String name, List deps=[]) {
-	sh """if [ ! -d "${name}" ]; then virtualenv --no-setuptools "${name}"; fi
-	      . "${name}/bin/activate"
-	      if [ ! -d "${name}/bin/pip" ]; then curl https://bootstrap.pypa.io/get-pip.py | python; fi
-	      ln -sf /usr/lib64/python2.7/site-packages/selinux "${name}/lib/python2.7/site-packages"
-	      ln -sf /usr/lib64/python2.7/site-packages/_selinux.so "${name}/lib64/python2.7/site-packages/"
-	      pip install ${deps.join(' ')}"""
-}
-def venvExec(String ctx, List<String> cmds) {
-	sh """. "${ctx}/bin/activate"
-	      ${cmds.join('\n')}"""
-}
+@Field def topologyBranch = "master";
 
 // Generate parallel build stages for Tier 1
 def createBuild(String target) {
@@ -63,13 +58,23 @@ def createBuild(String target) {
 	};
 }
 // Generate parallel deploy stages for Tier 2
-def createDeploy(String target) {
+def createDeploy(String target, Virtualenv venv) {
 	return {
-		// Test running cinch from the new install on the target machines
-		dir(topologyWorkspaceDir) {
-			unstash target;
-			venvExec "${WORKSPACE}/venv",
-					["cinch inventories/${target}.inventory"];
+		node("cinch-test-builder") {
+			// Clean the environment. Pipeline jobs don't seem to do that
+			cleanWs();
+			// Create a virtualenv with the new test cinch instance in it
+			unstash "build";
+			venv.install();
+			// Check out the files related to topologies
+			dir(topologyCheckoutDir) {
+				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
+			}
+			// Test running cinch from the new install on the target machines
+			dir(topologyWorkspaceDir) {
+				unstash target;
+				venv.exec(["cinch inventories/${target}.inventory"]);
+			}
 		}
 	}
 }
@@ -80,14 +85,14 @@ def createProvision(String target,
                     boolean doStash=true) {
 	return {
 		node(nodeName) {
-			virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
+			linchpin.install();
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
 			dir(topologyWorkspaceDir) {
-				venvExec "${WORKSPACE}/linchpin-venv", ["ansible-playbook --version",
+				linchpin.exec(["ansible-playbook --version",
 						'WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
-							+ direction + ' ' + target];
+							+ direction + ' ' + target]);
 				if (doStash) {
 					stash name: target, includes: "inventories/${target}.inventory,resources/${target}*";
 					successfulProvisions << target;
@@ -102,12 +107,9 @@ try {
 		node {
 			// Clean up from previous runs
 			cleanWs();
-			// Installing from moving source target depends on the following releases
-			// linchpin needs to support openstack userdata variables (v1.1?)
-			// cinch needs to support the tox testing builds (v0.8?)
-			// cinch needs to support discrete teardown command (v0.8?)
-			virtualenv "${WORKSPACE}/linchpin-venv", linchpinPackages;
-			virtualenv "${WORKSPACE}/cinch-venv", cinchPackages;
+			// Initialize the virtualenvs
+			linchpin.install();
+			cinch.install();
 			// This repository contains the topology files that are needed to spin up
 			// our instances with linchpin
 			dir(topologyCheckoutDir) {
@@ -119,14 +121,13 @@ try {
 			}
 			dir(topologyWorkspaceDir) {
 				// Spin up new instances for our testing
-				venvExec "${WORKSPACE}/linchpin-venv", ['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v up builder'];
+				linchpin.exec(['WORKSPACE="$(pwd)" linchpin --creds-path credentials -v up builder']);
 				stash name: "builder", includes: "inventories/builder.inventory,resources/builder*";
 				successfulProvisions << "builder";
-				venvExec "${WORKSPACE}/cinch-venv",
-				         ["cinch inventories/builder.inventory",
+				cinch.exec(["cinch inventories/builder.inventory",
 				          // This will actually test the pending builder.yml playbook, not the one installed
 				          // from pip, so we make sure the current code is able to test itself
-				          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]
+				          "ansible-playbook -i inventories/builder.inventory ${WORKSPACE}/cinch/cinch/playbooks/builder.yml"]);
 			}
 		}
 	}
@@ -155,31 +156,22 @@ try {
 
 
 	stage("Provision deploy tier") {
-		def deploys = [:];
+		def provisions = [:];
 		for( String target : cinchTargets ) {
-			deploys[target] = createProvision(target, "up");
+			provisions[target] = createProvision(target, "up");
 		}
-		parallel deploys;
+		parallel provisions;
 	}
 
 	stage("Tier 2 - Deploys") {
 		// First, we create a list of all the provision and all the deploy (test)
 		// steps that we must tackle
 		def deploys = [:];
-		for( String target : cinchTargets) {
-			deploys[target] = createDeploy(target);
+		Virtualenv testCinch = new Virtualenv(cinchPath, ["dist/cinch*.whl"]);
+		for( String target : cinchTargets ) {
+			deploys[target] = createDeploy(target, testCinch);
 		}
-		node("cinch-test-builder") {
-			// Clean the environment. Pipeline jobs don't seem to do that
-			cleanWs();
-			dir(topologyCheckoutDir) {
-				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
-			}
-			// Create a virtualenv with the new test cinch instance in it
-			unstash "build";
-			virtualenv "${WORKSPACE}/venv", ["dist/cinch*.whl"];
-			parallel deploys;
-		}
+		parallel deploys;
 	}
 
 } finally {
@@ -201,9 +193,10 @@ try {
 			// Attempt to shut down the Swarm process on the builder, if one
 			// was created
 			dir(topologyWorkspaceDir) {
-				if(fileExists("inventories/builder.inventory"))
-					venvExec "${WORKSPACE}/linchpin-venv",
-						["teardown inventories/builder.inventory || echo 'Teardown failed'"];
+				if(fileExists("inventories/builder.inventory")) {
+					linchpin.install();
+					linchpin.exec(["teardown inventories/builder.inventory || echo 'Teardown failed'"]);
+				}
 			}
 			// Perform actual teardown steps in parallel
 			parallel teardowns;
