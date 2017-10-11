@@ -21,8 +21,8 @@ public class Virtualenv {
 		sh """. "${this.basePath}/bin/activate"
 			  ${cmds.join('\n')}"""
 	}
-}
 
-def create(String basePath, List deps) {
-	return new Virtualenv(basePath, deps);
+	public static Virtualenv create(String basePath, List deps) {
+		return new Virtualenv(basePath, deps);
+	}
 }
