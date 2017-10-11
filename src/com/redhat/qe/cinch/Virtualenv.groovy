@@ -4,7 +4,8 @@ public class Virtualenv {
 	private String basePath;
 	private List deps;
 
-	public Virtualenv(List deps) {
+	public Virtualenv(String name, List deps) {
+		this.basePath = System.getenv('WORKSPACE') + '/venvs/' + name;
 		this.deps = deps;
 	}
 
@@ -18,11 +19,8 @@ public class Virtualenv {
 			  pip install ${this.deps.join(' ')}"""
 	}
 
-	public void setPath(String basePath) {
-		this.basePath = basePath;
-	}
-
 	public void exec(List<String> cmds) {
+		this.install();
 		sh """. "${this.basePath}/bin/activate"
 			  ${cmds.join('\n')}"""
 	}

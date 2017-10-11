@@ -36,12 +36,10 @@ def images = ["cent6_slave",
               "cent7_master"];
 @Field def successfulProvisions = [];
 
-def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
-def linchpinPath = "${WORKSPACE}/linchpin-venv";
-def linchpin = new Virtualenv(linchpinPackages);
-def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
-def cinchPath = "${WORKSPACE}/cinch-venv";
-def cinch = new Virtualenv(cinchPackages);
+@Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+@Field def linchpinPath = "linchpin-venv";
+@Field def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
+@Field def cinchPath = "cinch-venv";
 
 @Field def topologyCheckoutDir = "topology-dir";
 @Field def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
@@ -66,7 +64,6 @@ def createDeploy(String target, def venv) {
 			cleanWs();
 			// Create a virtualenv with the new test cinch instance in it
 			unstash "build";
-			venv.install();
 			// Check out the files related to topologies
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
@@ -86,8 +83,7 @@ def createProvision(String target,
                     boolean doStash=true) {
 	return {
 		node(nodeName) {
-			linchpin.setPath(linchpinPath);
-			linchpin.install();
+			def linchpin = new Virtualenv(linchpinPath, linchpinPackages);
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
@@ -110,9 +106,8 @@ try {
 			// Clean up from previous runs
 			cleanWs();
 			// Initialize the virtualenvs
-			linchpin.setPath(linchpinPath);
-			linchpin.install();
-			cinch.install();
+			def linchpin = new Virtualenv(linchpinPath, linchpinPackages);
+			def cinch = new Virtualenv(cinchPath, cinchPackages);
 			// This repository contains the topology files that are needed to spin up
 			// our instances with linchpin
 			dir(topologyCheckoutDir) {
@@ -197,8 +192,7 @@ try {
 			// was created
 			dir(topologyWorkspaceDir) {
 				if(fileExists("inventories/builder.inventory")) {
-					linchpin.setPath(linchpinPath);
-					linchpin.install();
+					def linchpin = new Virtualenv(linchpinPath, linchpinDeps);
 					linchpin.exec(["teardown inventories/builder.inventory || echo 'Teardown failed'"]);
 				}
 			}
