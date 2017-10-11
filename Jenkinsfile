@@ -21,7 +21,6 @@ import groovy.transform.Field;
 @Library('cinch@tox')
 import com.redhat.qe.cinch.Virtualenv;
 Virtualenv.script = this;
-Virtualenv.workspace = "${WORKSPACE}";
 
 // Trying to avoid "magic strings"
 def cinchTargets = ["rhel7_nosec_nossl",
@@ -85,7 +84,7 @@ def createProvision(String target,
                     boolean doStash=true) {
 	return {
 		node(nodeName) {
-			def linchpin = new Virtualenv(linchpinPath, linchpinPackages);
+			def linchpin = new Virtualenv(WORKSPACE, linchpinPath, linchpinPackages);
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
@@ -108,8 +107,8 @@ try {
 			// Clean up from previous runs
 			cleanWs();
 			// Initialize the virtualenvs
-			def linchpin = new Virtualenv(linchpinPath, linchpinPackages);
-			def cinch = new Virtualenv(cinchPath, cinchPackages);
+			def linchpin = new Virtualenv(WORKSPACE, linchpinPath, linchpinPackages);
+			def cinch = new Virtualenv(WORKSPACE, cinchPath, cinchPackages);
 			// This repository contains the topology files that are needed to spin up
 			// our instances with linchpin
 			dir(topologyCheckoutDir) {
@@ -167,7 +166,7 @@ try {
 		// First, we create a list of all the provision and all the deploy (test)
 		// steps that we must tackle
 		def deploys = [:];
-		def testCinch = new Virtualenv(cinchPath, ["dist/cinch*.whl"]);
+		def testCinch = new Virtualenv(WORKSPACE, cinchPath, ["dist/cinch*.whl"]);
 		for( String target : cinchTargets ) {
 			deploys[target] = createDeploy(target, testCinch);
 		}
@@ -194,7 +193,7 @@ try {
 			// was created
 			dir(topologyWorkspaceDir) {
 				if(fileExists("inventories/builder.inventory")) {
-					def linchpin = new Virtualenv(linchpinPath, linchpinDeps);
+					def linchpin = new Virtualenv(WORKSPACE, linchpinPath, linchpinDeps);
 					linchpin.exec(["teardown inventories/builder.inventory || echo 'Teardown failed'"]);
 				}
 			}

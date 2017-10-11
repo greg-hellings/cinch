@@ -2,11 +2,10 @@ package com.redhat.qe.cinch;
 
 public class Virtualenv implements Serializable {
 	public static def script;
-	public static String workspace;
 	private String basePath;
 	private List deps;
 
-	public Virtualenv(String name, List deps) {
+	public Virtualenv(String workspace, String name, List deps) {
 		this.basePath = workspace + '/venvs/' + name;
 		this.deps = deps;
 	}
