@@ -40,7 +40,7 @@ def linchpinPath = "${WORKSPACE}/linchpin-venv";
 @Field def linchpin = Virtualenv.create(linchpinPath, linchpinPackages);
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 def cinchPath = "${WORKSPACE}/cinch-venv";
-@Field def cinch = Virtualenv.newInstance(cinchPath, cinchPackages);
+@Field def cinch = Virtualenv.create(cinchPath, cinchPackages);
 
 @Field def topologyCheckoutDir = "topology-dir";
 @Field def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
@@ -167,7 +167,7 @@ try {
 		// First, we create a list of all the provision and all the deploy (test)
 		// steps that we must tackle
 		def deploys = [:];
-		def testCinch = Virtualenv.newInstance(cinchPath, ["dist/cinch*.whl"]);
+		def testCinch = Virtualenv.create(cinchPath, ["dist/cinch*.whl"]);
 		for( String target : cinchTargets ) {
 			deploys[target] = createDeploy(target, testCinch);
 		}
