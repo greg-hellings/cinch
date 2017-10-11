@@ -11,7 +11,7 @@ public class Virtualenv implements Serializable {
 
 	// Python virtualenv helper files
 	public void install() {
-		sh """if [ ! -d "${this.basePath}" ]; then virtualenv --no-setuptools "${this.basePath}"; fi
+		script.sh """if [ ! -d "${this.basePath}" ]; then virtualenv --no-setuptools "${this.basePath}"; fi
 			  . "${this.basePath}/bin/activate"
 			  if [ ! -d "${this.basePath}/bin/pip" ]; then curl https://bootstrap.pypa.io/get-pip.py | python; fi
 			  ln -sf /usr/lib64/python2.7/site-packages/selinux "${this.basePath}/lib/python2.7/site-packages"
@@ -21,7 +21,7 @@ public class Virtualenv implements Serializable {
 
 	public void exec(List<String> cmds) {
 		this.install();
-		sh """. "${this.basePath}/bin/activate"
+		script.sh """. "${this.basePath}/bin/activate"
 			  ${cmds.join('\n')}"""
 	}
 }
