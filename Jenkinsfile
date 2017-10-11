@@ -61,7 +61,7 @@ def createBuild(String target) {
 def createDeploy(String target) {
 	return {
 		node("cinch-test-builder") {
-			def venv = new Virtualenv(WORKSPACE, cinchPath, ["dist/cinch*.whl"]);
+			def venv = new Virtualenv(pwd(), cinchPath, ["dist/cinch*.whl"]);
 			// Clean the environment. Pipeline jobs don't seem to do that
 			cleanWs();
 			// Create a virtualenv with the new test cinch instance in it
