@@ -193,7 +193,7 @@ try {
 			// was created
 			dir(topologyWorkspaceDir) {
 				if(fileExists("inventories/builder.inventory")) {
-					def linchpin = new Virtualenv(WORKSPACE, linchpinPath, linchpinDeps);
+					def linchpin = new Virtualenv(WORKSPACE, linchpinPath, linchpinPackages);
 					linchpin.exec(["teardown inventories/builder.inventory || echo 'Teardown failed'"]);
 				}
 			}
