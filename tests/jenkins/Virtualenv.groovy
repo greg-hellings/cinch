@@ -22,3 +22,7 @@ public class Virtualenv {
 			  ${cmds.join('\n')}"""
 	}
 }
+
+def newInstance(String basePath, List deps) {
+	return new Virtualenv(basePath, deps);
+}
