@@ -101,7 +101,7 @@ try {
 	stage("Provision Builder") {
 		node {
 			// Clean up from previous runs
-			sh "rm -rf ${topologyCheckoutDir} cinch";
+			cleanWs();
 			// Installing from moving source target depends on the following releases
 			// linchpin needs to support openstack userdata variables (v1.1?)
 			// cinch needs to support the tox testing builds (v0.8?)
@@ -135,7 +135,7 @@ try {
 	stage("Tier 0 - Build artifact") {
 		node("cinch-test-builder") {
 			// Clean from previous runs
-			sh "rm -rf cinch";
+			cleanWs();
 			dir("cinch") {
 				checkout scm;
 				sh "python setup.py sdist bdist_wheel";
@@ -171,7 +171,7 @@ try {
 		}
 		node("cinch-test-builder") {
 			// Clean the environment. Pipeline jobs don't seem to do that
-			sh "rm -rf dist/* venv ${topologyCheckoutDir}";
+			cleanWs();
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
