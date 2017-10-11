@@ -6,6 +6,16 @@ v 0.9.0 (next)
 - Eliminated all remaining lint warnings, made yamllint warnings errors
 - Broke out separate teardown command
 - Removed dev/test subpackages into tox environments instead of setup.py
+- Added one-off playbook to create a system for the Jenkins-based tests that
+  are executed by the Jenkinsfile
+- Made the jenkins_master_url argument mandatory for Jenkins slave instances,
+  rather than pointing at "example.com"
+- Added support for specifying "extra_repositories" so that the default ones
+  needed for Jenkins can be used, but also so that additional ones can be added
+  without forcing the user to keep track of the existing ones and track those
+  changes
+- Changed target Docker names so that multiple Docker builds can be executed on
+  the same host in parallel
 
 v 0.8.5 (10 Oct 2017)
 - Remove management of the executor setting on masters (GH #182)
