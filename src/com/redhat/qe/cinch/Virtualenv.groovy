@@ -1,3 +1,5 @@
+package com.redhat.qe.cinch;
+
 public class Virtualenv {
 	private String basePath;
 	private List deps;
@@ -22,9 +24,3 @@ public class Virtualenv {
 			  ${cmds.join('\n')}"""
 	}
 }
-
-def create(String basePath, List deps) {
-	return new Virtualenv(basePath, deps);
-}
-
-return this;
