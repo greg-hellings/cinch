@@ -23,6 +23,6 @@ public class Virtualenv {
 	}
 }
 
-def newInstance(String basePath, List deps) {
+def create(String basePath, List deps) {
 	return new Virtualenv(basePath, deps);
 }

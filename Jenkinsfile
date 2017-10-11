@@ -37,7 +37,7 @@ def images = ["cent6_slave",
 
 def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def linchpinPath = "${WORKSPACE}/linchpin-venv";
-@Field def linchpin = Virtualenv.newInstance(linchpinPath, linchpinPackages);
+@Field def linchpin = Virtualenv.create(linchpinPath, linchpinPackages);
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 def cinchPath = "${WORKSPACE}/cinch-venv";
 @Field def cinch = Virtualenv.newInstance(cinchPath, cinchPackages);
