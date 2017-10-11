@@ -18,7 +18,7 @@ import groovy.transform.Field;
 * Teardown resources
 */
 // Load helper scripts
-def Virtualenv = load "tests/jenkins/Virtualenv.groovy";
+def Virtualenv = this.class.classLoader.parseScript(new File("tests/jenkins/Virtualenv.groovy"));
 
 // Trying to avoid "magic strings"
 def cinchTargets = ["rhel7_nosec_nossl",
@@ -37,7 +37,7 @@ def images = ["cent6_slave",
 
 def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def linchpinPath = "${WORKSPACE}/linchpin-venv";
-@Field Virtualenv.Virtualenv linchpin = new Virtualenv(linchpinPath, linchpinPackages);
+@Field def linchpin = Virtualenv.newInstance(linchpinPath, linchpinPackages);
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 def cinchPath = "${WORKSPACE}/cinch-venv";
 @Field Virtualenv cinch = new Virtualenv(cinchPath, cinchPackages);
