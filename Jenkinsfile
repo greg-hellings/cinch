@@ -18,10 +18,7 @@ import groovy.transform.Field;
 * Teardown resources
 */
 // Load helper scripts
-def HelpLibrary = library(identifier: "cinch@${BRANCH_NAME}",
-                          retriever: modernSCM([$class: 'GitSCMSource',
-                                                remote: "${GIT_URL}"]));
-def QePackage = HelpLibrary.com.redhat.qe.cinch;
+@Library('cinch@tox')
 
 // Trying to avoid "magic strings"
 def cinchTargets = ["rhel7_nosec_nossl",
