@@ -1,6 +1,7 @@
 package com.redhat.qe.cinch;
 
 public class Virtualenv implements Serializable {
+	public static def script;
 	private String basePath;
 	private List deps;
 
