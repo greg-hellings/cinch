@@ -79,14 +79,13 @@ def createDeploy(String target) {
 	}
 }
 // Execute a parallel provision step
-def createProvision(String workspace,
-                    String target,
+def createProvision(String target,
                     String direction,
                     String nodeName="cinch-test-builder",
                     boolean doStash=true) {
 	return {
 		node(nodeName) {
-			def linchpin = new Virtualenv(workspace, linchpinPath, linchpinPackages);
+			def linchpin = new Virtualenv(pwd(), linchpinPath, linchpinPackages);
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
@@ -159,7 +158,7 @@ try {
 	stage("Provision deploy tier") {
 		def provisions = [:];
 		for( String target : cinchTargets ) {
-			provisions[target] = createProvision(WORKSPACE, target, "up");
+			provisions[target] = createProvision(target, "up");
 		}
 		parallel provisions;
 	}
@@ -185,7 +184,7 @@ try {
 			// provisioned, and unstash the resulting build files
 			def teardowns = [:];
 			for (String target : successfulProvisions) {
-				teardowns[target] = createProvision(WORKSPACE, target, "down", "master", false);
+				teardowns[target] = createProvision(target, "down", "master", false);
 				dir(topologyWorkspaceDir) {
 					unstash target;
 				}
