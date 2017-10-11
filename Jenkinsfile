@@ -18,14 +18,10 @@ import groovy.transform.Field;
 * Teardown resources
 */
 // Load helper scripts
-def Virtualenv;
-node {
-	cleanWs();
-	dir("cinch") {
-		scm checkout;
-		Virtualenv = this.class.classLoader.parseScript(new File("tests/jenkins/Virtualenv.groovy"));
-	}
-}
+def HelpLibrary = library(identifier: "cinch@${BRANCH_NAME}",
+                          retriever: modernSCM([$class: 'GitSCMSource',
+                                                remote: "${GIT_URL}"]));
+def QePackage = HelpLibrary.com.redhat.qe.cinch;
 
 // Trying to avoid "magic strings"
 def cinchTargets = ["rhel7_nosec_nossl",
@@ -44,10 +40,10 @@ def images = ["cent6_slave",
 
 def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def linchpinPath = "${WORKSPACE}/linchpin-venv";
-@Field def linchpin = Virtualenv.create(linchpinPath, linchpinPackages);
+@Field def linchpin = Virtualenv.new(linchpinPath, linchpinPackages);
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 def cinchPath = "${WORKSPACE}/cinch-venv";
-@Field def cinch = Virtualenv.create(cinchPath, cinchPackages);
+@Field def cinch = Virtualenv.new(cinchPath, cinchPackages);
 
 @Field def topologyCheckoutDir = "topology-dir";
 @Field def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
@@ -174,7 +170,7 @@ try {
 		// First, we create a list of all the provision and all the deploy (test)
 		// steps that we must tackle
 		def deploys = [:];
-		def testCinch = Virtualenv.create(cinchPath, ["dist/cinch*.whl"]);
+		def testCinch = Virtualenv.new(cinchPath, ["dist/cinch*.whl"]);
 		for( String target : cinchTargets ) {
 			deploys[target] = createDeploy(target, testCinch);
 		}
