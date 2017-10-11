@@ -20,6 +20,7 @@ import groovy.transform.Field;
 // Load helper scripts
 def Virtualenv;
 node {
+	cleanWs();
 	dir("cinch") {
 		scm checkout;
 		Virtualenv = this.class.classLoader.parseScript(new File("tests/jenkins/Virtualenv.groovy"));
