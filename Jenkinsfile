@@ -36,11 +36,11 @@ def images = ["cent6_slave",
               "cent7_master"];
 @Field def successfulProvisions = [];
 
-def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
-def linchpinPath = "${WORKSPACE}/linchpin-venv";
+@Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+@Field def linchpinPath = "${WORKSPACE}/linchpin-venv";
 @Field def linchpin = new Virtualenv(linchpinPath, linchpinPackages);
-def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
-def cinchPath = "${WORKSPACE}/cinch-venv";
+@Field def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
+@Field def cinchPath = "${WORKSPACE}/cinch-venv";
 @Field def cinch = new Virtualenv(cinchPath, cinchPackages);
 
 @Field def topologyCheckoutDir = "topology-dir";
