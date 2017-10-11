@@ -1,6 +1,6 @@
 package com.redhat.qe.cinch;
 
-public class Virtualenv {
+public class Virtualenv implements Serializable {
 	private String basePath;
 	private List deps;
 
