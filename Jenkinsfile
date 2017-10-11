@@ -21,6 +21,7 @@ import groovy.transform.Field;
 @Library('cinch@tox')
 import com.redhat.qe.cinch.Virtualenv;
 Virtualenv.script = this;
+Virtualenv.workspace = "${WORKSPACE}";
 
 // Trying to avoid "magic strings"
 def cinchTargets = ["rhel7_nosec_nossl",
