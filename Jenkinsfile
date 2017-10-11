@@ -18,7 +18,7 @@ import groovy.transform.Field;
 * Teardown resources
 */
 // Load helper scripts
-def Virtualenv = this.class.classLoader.parseScript(new File("tests/jenkins/Virtualenv.groovy"));
+def Virtualenv = load "tests/jenkins/Virtualenv.groovy";
 
 // Trying to avoid "magic strings"
 def cinchTargets = ["rhel7_nosec_nossl",
