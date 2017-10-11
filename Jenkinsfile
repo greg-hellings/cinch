@@ -40,7 +40,7 @@ def linchpinPath = "${WORKSPACE}/linchpin-venv";
 @Field def linchpin = Virtualenv.newInstance(linchpinPath, linchpinPackages);
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 def cinchPath = "${WORKSPACE}/cinch-venv";
-@Field Virtualenv cinch = new Virtualenv(cinchPath, cinchPackages);
+@Field def cinch = Virtualenv.newInstance(cinchPath, cinchPackages);
 
 @Field def topologyCheckoutDir = "topology-dir";
 @Field def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
@@ -58,7 +58,7 @@ def createBuild(String target) {
 	};
 }
 // Generate parallel deploy stages for Tier 2
-def createDeploy(String target, Virtualenv venv) {
+def createDeploy(String target, def venv) {
 	return {
 		node("cinch-test-builder") {
 			// Clean the environment. Pipeline jobs don't seem to do that
@@ -167,7 +167,7 @@ try {
 		// First, we create a list of all the provision and all the deploy (test)
 		// steps that we must tackle
 		def deploys = [:];
-		Virtualenv testCinch = new Virtualenv(cinchPath, ["dist/cinch*.whl"]);
+		def testCinch = Virtualenv.newInstance(cinchPath, ["dist/cinch*.whl"]);
 		for( String target : cinchTargets ) {
 			deploys[target] = createDeploy(target, testCinch);
 		}
