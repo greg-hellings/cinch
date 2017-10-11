@@ -37,10 +37,10 @@ def images = ["cent6_slave",
 
 def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 def linchpinPath = "${WORKSPACE}/linchpin-venv";
-@Field def linchpin = QePackage.Virtualenv.new(linchpinPath, linchpinPackages);
+@Field def linchpin = new Virtualenv(linchpinPath, linchpinPackages);
 def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 def cinchPath = "${WORKSPACE}/cinch-venv";
-@Field def cinch = QePackage.Virtualenv.new(cinchPath, cinchPackages);
+@Field def cinch = new Virtualenv(cinchPath, cinchPackages);
 
 @Field def topologyCheckoutDir = "topology-dir";
 @Field def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
@@ -167,7 +167,7 @@ try {
 		// First, we create a list of all the provision and all the deploy (test)
 		// steps that we must tackle
 		def deploys = [:];
-		def testCinch = QePackage.Virtualenv.new(cinchPath, ["dist/cinch*.whl"]);
+		def testCinch = new Virtualenv(cinchPath, ["dist/cinch*.whl"]);
 		for( String target : cinchTargets ) {
 			deploys[target] = createDeploy(target, testCinch);
 		}
