@@ -36,12 +36,12 @@ def images = ["cent6_slave",
               "cent7_master"];
 @Field def successfulProvisions = [];
 
-@Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
-@Field def linchpinPath = "${WORKSPACE}/linchpin-venv";
-@Field def linchpin = new Virtualenv(linchpinPath, linchpinPackages);
-@Field def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
-@Field def cinchPath = "${WORKSPACE}/cinch-venv";
-@Field def cinch = new Virtualenv(cinchPath, cinchPackages);
+def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+def linchpinPath = "${WORKSPACE}/linchpin-venv";
+def linchpin = new Virtualenv(linchpinPackages);
+def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
+def cinchPath = "${WORKSPACE}/cinch-venv";
+def cinch = new Virtualenv(cinchPackages);
 
 @Field def topologyCheckoutDir = "topology-dir";
 @Field def topologyWorkspaceDir = "${topologyCheckoutDir}/test";
@@ -86,6 +86,7 @@ def createProvision(String target,
                     boolean doStash=true) {
 	return {
 		node(nodeName) {
+			linchpin.setPath(linchpinPath);
 			linchpin.install();
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
@@ -109,6 +110,7 @@ try {
 			// Clean up from previous runs
 			cleanWs();
 			// Initialize the virtualenvs
+			linchpin.setPath(linchpinPath);
 			linchpin.install();
 			cinch.install();
 			// This repository contains the topology files that are needed to spin up
@@ -195,6 +197,7 @@ try {
 			// was created
 			dir(topologyWorkspaceDir) {
 				if(fileExists("inventories/builder.inventory")) {
+					linchpin.setPath(linchpinPath);
 					linchpin.install();
 					linchpin.exec(["teardown inventories/builder.inventory || echo 'Teardown failed'"]);
 				}
