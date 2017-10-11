@@ -58,9 +58,10 @@ def createBuild(String target) {
 	};
 }
 // Generate parallel deploy stages for Tier 2
-def createDeploy(String target, def venv) {
+def createDeploy(String target) {
 	return {
 		node("cinch-test-builder") {
+			def venv = new Virtualenv(WORKSPACE, cinchPath, ["dist/cinch*.whl"]);
 			// Clean the environment. Pipeline jobs don't seem to do that
 			cleanWs();
 			// Create a virtualenv with the new test cinch instance in it
@@ -78,13 +79,14 @@ def createDeploy(String target, def venv) {
 	}
 }
 // Execute a parallel provision step
-def createProvision(String target,
+def createProvision(String workspace,
+                    String target,
                     String direction,
                     String nodeName="cinch-test-builder",
                     boolean doStash=true) {
 	return {
 		node(nodeName) {
-			def linchpin = new Virtualenv(WORKSPACE, linchpinPath, linchpinPackages);
+			def linchpin = new Virtualenv(workspace, linchpinPath, linchpinPackages);
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
@@ -157,7 +159,7 @@ try {
 	stage("Provision deploy tier") {
 		def provisions = [:];
 		for( String target : cinchTargets ) {
-			provisions[target] = createProvision(target, "up");
+			provisions[target] = createProvision(WORKSPACE, target, "up");
 		}
 		parallel provisions;
 	}
@@ -166,9 +168,8 @@ try {
 		// First, we create a list of all the provision and all the deploy (test)
 		// steps that we must tackle
 		def deploys = [:];
-		def testCinch = new Virtualenv(WORKSPACE, cinchPath, ["dist/cinch*.whl"]);
 		for( String target : cinchTargets ) {
-			deploys[target] = createDeploy(target, testCinch);
+			deploys[target] = createDeploy(target);
 		}
 		parallel deploys;
 	}
@@ -184,7 +185,7 @@ try {
 			// provisioned, and unstash the resulting build files
 			def teardowns = [:];
 			for (String target : successfulProvisions) {
-				teardowns[target] = createProvision(target, "down", "master", false);
+				teardowns[target] = createProvision(WORKSPACE, target, "down", "master", false);
 				dir(topologyWorkspaceDir) {
 					unstash target;
 				}
