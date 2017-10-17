@@ -37,7 +37,7 @@ def images = ["cent6_slave",
               "cent7_master"];
 @Field def successfulProvisions = [];
 
-@Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+@Field def linchpinPackages = ["linchpin==1.0.4"];
 @Field def linchpinPath = "linchpin-venv";
 @Field def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 @Field def cinchPath = "cinch-venv";
@@ -61,10 +61,8 @@ def createBuild(String target) {
 def createDeploy(String target) {
 	return {
 		node("cinch-test-builder") {
-			def venv = new Virtualenv(pwd(), cinchPath, ["../dist/cinch*.whl"]);
-			// Clean the environment. Pipeline jobs don't seem to do that
+			def venv = new Virtualenv(pwd(), cinchPath, ["${WORKSPACE}/dist/cinch*.whl"]);
 			cleanWs();
-			// Create a virtualenv with the new test cinch instance in it
 			unstash "build";
 			// Check out the files related to topologies
 			dir(topologyCheckoutDir) {
@@ -86,9 +84,11 @@ def createProvision(String target,
 	return {
 		node(nodeName) {
 			def linchpin = new Virtualenv(pwd(), linchpinPath, linchpinPackages);
+			// Fetch the topology files
 			dir(topologyCheckoutDir) {
 				git url: "${TOPOLOGY_DIR_URL}", branch: topologyBranch;
 			}
+			// Inside of the linchpin subdir, bring up the specified systems
 			dir(topologyWorkspaceDir) {
 				linchpin.exec(["ansible-playbook --version",
 						'WORKSPACE="$(pwd)" linchpin --creds-path credentials -v '
