@@ -37,7 +37,7 @@ def images = ["cent6_slave",
               "cent7_master"];
 @Field def successfulProvisions = [];
 
-@Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
+@Field def linchpinPackages = ["ansible!=2.4.0.0", "https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 @Field def linchpinPath = "linchpin-venv";
 @Field def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 @Field def cinchPath = "cinch-venv";
