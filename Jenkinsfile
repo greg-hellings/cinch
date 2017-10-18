@@ -41,7 +41,6 @@ def images = ["cent6_slave",
 // release. For now, we use the develop version
 @Field def linchpinPackages = ["https://github.com/CentOS-PaaS-SiG/linchpin/archive/develop.tar.gz"];
 @Field def linchpinPath = "linchpin-venv";
-// Ansible 2.4.0.0 has a bug that prevents cinch's check SSH role from working properly
 @Field def cinchPackages = ["https://github.com/greg-hellings/cinch/archive/tox.tar.gz"];
 @Field def cinchPath = "cinch-venv";
 
