@@ -45,58 +45,6 @@ def call_ansible(inventory, playbook, *args):
     return exit_code
 
 
-def call_linchpin(work_dir, arg):
-    """
-    Wraps a call out to the linchpin executable, and then kicks off a cinch
-    Ansible playbook if necessary.
-
-    :param work_dir: The linch-pin working directory that contains a PinFile
-    and associated configuration files
-    :param arg: A single argument to pass to the linchpin command
-    :return: The exit code returned from linchpin, or 255 if errors come from
-    elsewhere
-    """
-    # cinch will only support a subset of linchpin subcommands
-    supported_cmds = ['up', 'destroy', 'init']
-    if arg not in supported_cmds:
-        sys.exit('linchpin command "{0}" not '
-                 'supported by cinch'.format(arg))
-
-    # If we are to ask linch-pin to interact with infrastructure we will check
-    # for some required configuration items and set up them for later use
-    if arg != 'init':
-        inventory_file = get_inventory(work_dir)
-        inventory_path = os.path.join(work_dir, 'inventories', inventory_file)
-
-    # For destroy/teardown, we must run our teardown playbook(s) *before*
-    # linchpin terminates the instance(s)
-    if arg == 'destroy':
-        exit_code = call_ansible(inventory_path, 'teardown.yml')
-
-    # Construct the arguments to pass to linch-pin by munging the arguments
-    # provided to this method
-    linchpin_args = [
-        '-v',
-        '-w', work_dir,
-        '--creds-path', os.path.join(work_dir, 'credentials')
-    ]
-    linchpin_args.append(arg)
-    # Execute the 'linchpin' command
-    linchpin = local['linchpin']
-    exit_code = command_handler(linchpin, linchpin_args)
-
-    # Set up a linch-pin+cinch configuration skeleton for later use if the
-    # 'init' subcommand was executed previously
-    if arg == 'init':
-        cinchpin_init(work_dir)
-
-    # If linchpin is asked to provision resources, we will then run our
-    # cinch provisioning playbook
-    if arg == 'up' and exit_code == 0:
-        exit_code = call_ansible(inventory_path, 'site.yml')
-    return exit_code
-
-
 def cinchpin_init(work_dir):
     """
     Set up a linch-pin+cinch configuration skeleton

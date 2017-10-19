@@ -30,14 +30,12 @@ setup(
     include_package_data=True,
     install_requires=[
         'ansible>=2.3.2,!=2.4.0.0',
-        'plumbum>=1.6.0',
-        'linchpin>=1.0.4'
+        'plumbum>=1.6.0'
     ],
     entry_points={
         'console_scripts': [
             'cinch=cinch.bin.entry_point:cinch',
-            'teardown=cinch.bin.entry_point:teardown',
-            'cinchpin=cinch.bin.entry_point:cinchpin'
+            'teardown=cinch.bin.entry_point:teardown'
         ]
     },
     extras_require={
