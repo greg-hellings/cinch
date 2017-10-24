@@ -24,10 +24,11 @@ Virtualenv.script = this;
 
 // Trying to avoid "magic strings"
 def cinchTargets = ["rhel7_nosec_nossl",
-                    "rhel7_nosec_ssl",
-                    "rhel7_sec_nossl",
+                    //"rhel7_nosec_ssl",
+                    //"rhel7_sec_nossl",
                     "rhel7_sec_ssl",
-                    "rhel7_sec_ssl_rhel6_slave"];
+                    //"rhel7_sec_ssl_rhel6_slave"
+                    ];
 def toxTargets = ["lint",
                   "docs",
                   "py27"];
