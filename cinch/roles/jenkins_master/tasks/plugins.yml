@@ -21,6 +21,7 @@
   copy:
     src: "{{ update_center_certificate }}"
     dest: "{{ jenkins_home }}/update-center-rootCAs/update-center.crt"
+    remote_src: "{{ update_center_certificate_remote_src }}"
     owner: jenkins
     group: jenkins
   notify: restart Jenkins
@@ -46,7 +47,7 @@
   retries: 3
   until: not plugin_install|failed
   with_subelements:
-    - "{{ jenkins_plugins }}"
+    - "{{ jenkins_plugins + jenkins_extra_plugins }}"
     - plugins
   notify: restart Jenkins
 
