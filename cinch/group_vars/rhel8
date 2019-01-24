@@ -1,4 +1,4 @@
-ansible_python_interpreter: /usr/bin/python3
+ansible_python_interpreter: /usr/libexec/platform-python
 python_pip_package: python3-pip
 
 all_repositories:
