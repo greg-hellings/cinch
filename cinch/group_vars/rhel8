@@ -4,16 +4,16 @@ python_pip_package: python3-pip
 all_repositories:
   baseos:
     name: rhel8-baseos
-    baseurl: "{{ rhel_base }}/$basearch/baseos/os/"
+    baseurl: "{{ rhel_base }}/BaseOS/$basearch/os/"
   appstream:
     name: rhel8-appstream
-    baseurl: "{{ rhel_base }}/$basearch/appstream/os/"
+    baseurl: "{{ rhel_base }}/AppStream/$basearch/os/"
   baseos-debug:
     name: rhel8-baseos-debug
-    baseurl: "{{ rhel_base }}/$basearch/baseos/debug/tree/"
+    baseurl: "{{ rhel_base }}/BaseOS/$basearch/debug/tree/"
   appstream-debug:
     name: rhel8-appstream-debug
-    baseurl: "{{ rhel_base }}/$basearch/appstream/debug/tree/"
+    baseurl: "{{ rhel_base }}/AppStream/$basearch/debug/tree/"
 
 # These types of repositories will download the requested URL into the /etc/yum.repos.d
 # folder in order to enable them
