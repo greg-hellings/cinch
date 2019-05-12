@@ -16,7 +16,7 @@ before_install:
   - travis_retry pip install -U pip
   - pip --version
 install:
-  - travis_retry gem install inspec
+  - travis_retry gem install inspec inspec-bin
   - travis_retry pip install tox
   - tox --version
 script:
@@ -25,13 +25,13 @@ script:
 # Test matrix will be constructed from here. Listing out each set of tests
 # to execute will permit them to be executed in parallel
 env:
+  - TOXENV=cent7_master
   - TOXENV=lint
   - TOXENV=docs
   - TOXENV=py27
   - TOXENV=cent6_slave
   - TOXENV=cent7_slave
   - TOXENV=fedora_slave
-  - TOXENV=cent7_master
 
 deploy:
   - provider: pypi

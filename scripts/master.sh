@@ -24,9 +24,9 @@ ansible -i /dev/null \
 		name=${container_name} \
 		tty=true \
 		detach=true \
-		command='/usr/lib/systemd/systemd \
-		--system' \
+		command='/usr/sbin/init' \
 		capabilities=SYS_ADMIN \
+		volumes=/sys/fs/cgroup:/sys/fs/cgroup:ro \
 		$([[ $TRAVIS = true ]] && echo privileged=true)"
 # Fedora is lacking python in base image
 docker exec -it "${container_name}" "${pkg_mgr}" install -y python
@@ -49,7 +49,8 @@ ansible-playbook -i "${inventory}" \
 # Run inspec against the container
 ########################################################
 erb "${cinch}/tests/profile.yml.erb" > "${cinch}/tests/profile.yml"
-inspec exec "${cinch}/tests/cinch" --attrs "${cinch}/tests/profile.yml" -t "docker://${container_name}"
+inspec exec --chef-license=accept-silent "${cinch}/tests/cinch" \
+	--input-file "${cinch}/tests/profile.yml" -t "docker://${container_name}"
 ########################################################
 # Finish and close up the container
 ########################################################
@@ -57,5 +58,5 @@ echo "Saving image"
 docker commit \
 	--change 'EXPOSE 8080' \
 	--change 'EXPOSE 8009' \
-	--change 'ENTRYPOINT ["/usr/lib/systemd/systemd", "--system"]' \
+	--change 'ENTRYPOINT ["/usr/sbin/init"]' \
 	"${container_name}" "redhatqecinch/jenkins_master:${container_base//:/}-${cinch_version}"
